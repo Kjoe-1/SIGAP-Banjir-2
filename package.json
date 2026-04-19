@@ -1,14 +1,16 @@
 {
-  "name": "sigap-banjir",
+  "name": "public",
   "version": "1.0.0",
-  "description": "Web monitoring banjir",
-  "main": "server.js",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "ken",
+  "keywords": [],
+  "author": "",
   "license": "ISC",
   "dependencies": {
-    "mongoose": "^9.4.1"
+    "express": "^5.2.1"
   }
 }

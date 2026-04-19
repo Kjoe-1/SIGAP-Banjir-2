@@ -1,69 +1,34 @@
 const express = require('express');
-const session = require('express-session');
 const path = require('path');
-const mongoose = require('mongoose');
-const Sensor = require('./models/Sensor');
 
 const app = express();
 
-// middleware (WAJIB DI ATAS)
+// biar bisa baca JSON
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-app.use(session({
-    secret: 'sigapbanjir',
-    resave: false,
-    saveUninitialized: true
-}));
+// serve folder public (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname, 'public')));
 
-// static
-app.use(express.static('public'));
-
-// DB
-mongoose.connect('mongodb://127.0.0.1/sigap-banjir');
-
-// ===== SENSOR API =====
-app.post('/sensor', async (req, res) => {
-    const data = new Sensor(req.body);
-    await data.save();
-    res.sendStatus(200);
+// route default
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-app.get('/sensor/latest', async (req, res) => {
-    const data = await Sensor.findOne().sort({ createdAt: -1 });
-    res.json(data);
+// dummy endpoint biar dashboard nggak loading
+app.get('/sensor/latest', (req, res) => {
+    res.json({
+        suhu: 30,
+        kelembapan: 70,
+        lat: -7.25,
+        lng: 112.75
+    });
 });
 
-// ===== AUTH =====
-const users = [];
-
-app.post('/auth/register', (req, res) => {
-    const { username, email, password } = req.body;
-    users.push({ username, email, password, role: 'user' });
-    res.sendStatus(200);
-});
-
-app.post('/auth/login', (req, res) => {
-    const { email, password } = req.body;
-
-    const user = users.find(u => u.email === email && u.password === password);
-    if (!user) return res.sendStatus(401);
-
-    req.session.user = user;
-    res.sendStatus(200);
-});
-
+// dummy auth
 app.get('/auth/me', (req, res) => {
-    if (!req.session.user) return res.sendStatus(401);
-    res.json(req.session.user);
+    res.json({ role: 'user' });
 });
 
-app.get('/auth/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/login.html');
-});
-
-// ===== START =====
 app.listen(3000, () => {
-    console.log("http://localhost:3000");
+    console.log('Server jalan di http://localhost:3000');
 });
