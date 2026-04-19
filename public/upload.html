@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Upload Laporan</h2>
+
+    <!-- FORM -->
+    <form>
+        <textarea placeholder="Deskripsi..." style="width:100%; height:100px;"></textarea>
+        <br><br>
+        <input type="file">
+        <br><br>
+        <button type="submit">Kirim</button>
+    </form>
+
+    <br>
+
+    <!-- BACK BUTTON -->
+    <button onclick="goBack()">⬅ Kembali ke Dashboard</button>
+
+</div>
+
+<script>
+function goBack() {
+    window.location.href = "/dashboard.html";
+}
+</script>
+
+</body>
+</html>

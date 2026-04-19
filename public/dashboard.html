@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/dashboard.css">
+
+    <!-- LEAFLET (MAP) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- NAVBAR -->
+    <div class="navbar">
+        <h2>Surabanyu</h2>
+        <div class="nav-btn">
+            <button id="uploadBtn">Unggah Foto</button>
+            <button id="adminBtn">Laporan Warga</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- LOKASI -->
+    <p class="lokasi">
+        Lokasi: Monitoring Area
+    </p>
+
+    <!-- GRID -->
+    <div class="grid">
+
+        <!-- STATUS -->
+        <div class="status-card" id="statusCard">
+            <h3>Status: <span id="statusText">AMAN</span></h3>
+            <div class="icon">✔</div>
+            <p>Kondisi Normal</p>
+        </div>
+
+        <!-- MAP (INTERAKTIF) -->
+        <div class="map">
+            <div id="map" style="height:120px; border-radius:10px;"></div>
+        </div>
+
+        <!-- SENSOR -->
+        <div class="sensor">
+
+            <!-- KELEMBAPAN -->
+            <div class="circle-box">
+                <svg class="progress" width="120" height="120">
+                    <circle cx="60" cy="60" r="50"
+                        stroke="#ddd" stroke-width="10" fill="none"/>
+                    
+                    <circle id="humCircle" cx="60" cy="60" r="50"
+                        stroke="lime" stroke-width="10" fill="none"
+                        stroke-dasharray="314"
+                        stroke-dashoffset="314"/>
+                </svg>
+
+                <div class="label">
+                    <h3 id="humidityText">0%</h3>
+                    <p>Kelembapan</p>
+                </div>
+            </div>
+
+            <!-- SUHU -->
+            <div class="circle-box">
+                <svg class="progress" width="120" height="120">
+                    <circle cx="60" cy="60" r="50"
+                        stroke="#ddd" stroke-width="10" fill="none"/>
+
+                    <circle id="tempCircle" cx="60" cy="60" r="50"
+                        stroke="orange" stroke-width="10" fill="none"
+                        stroke-dasharray="314"
+                        stroke-dashoffset="314"/>
+                </svg>
+
+                <div class="label">
+                    <h3 id="tempText">0°C</h3>
+                    <p>Suhu</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- GRAFIK -->
+        <div class="grafik">
+            <h3>Grafik Curah Hujan</h3>
+            <canvas id="chart"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- LIBRARY -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- SCRIPT -->
+<script src="js/dashboard.js"></script>
+
+</body>
+</html>

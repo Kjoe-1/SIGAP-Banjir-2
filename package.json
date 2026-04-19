@@ -1,0 +1,14 @@
+{
+  "name": "sigap-banjir",
+  "version": "1.0.0",
+  "description": "Web monitoring banjir",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "ken",
+  "license": "ISC",
+  "dependencies": {
+    "mongoose": "^9.4.1"
+  }
+}
