@@ -153,7 +153,45 @@ dropArea.addEventListener("drop", (e) => {
 // submit (dummy)
 document.getElementById("uploadForm").addEventListener("submit", (e) => {
     e.preventDefault();
+
+    // ambil input
+    const kategori = document.querySelector("select").value;
+    const judul = document.querySelector("input[type='text']").value.trim();
+    const deskripsi = document.querySelector("textarea").value.trim();
+    const file = fileInput.files[0];
+
+    // 🔥 VALIDASI BIAR GAK AUTO SUCCESS
+    if (
+        kategori === "Pilih Kategori..." ||
+        judul === "" ||
+        deskripsi === "" ||
+        !file
+    ) {
+        alert("Harap isi semua data terlebih dahulu!");
+        return;
+    }
+
+    // ambil data lama
+    let laporan = JSON.parse(localStorage.getItem("laporan")) || [];
+
+    // push data baru
+    laporan.push({
+        waktu: new Date().toLocaleString(),
+        kategori,
+        judul,
+        deskripsi,
+        foto: URL.createObjectURL(file)
+    });
+
+    // simpan
+    localStorage.setItem("laporan", JSON.stringify(laporan));
+
+    // 🔥 alert HARUS DI DALAM EVENT
     alert("Laporan berhasil diupload!");
+
+    // reset form
+    document.getElementById("uploadForm").reset();
+    fileName.innerText = "Belum ada file";
 });
 
 // back

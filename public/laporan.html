@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Laporan Warga</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="navbar">
+        <h2>Laporan Warga (Admin)</h2>
+    </div>
+
+    <div class="laporan-container" id="laporanList">
+        Loading...
+    </div>
+
+</div>
+
+<!-- 🔥 FLOATING BACK BUTTON -->
+<button class="back-floating" onclick="goDashboard()">
+    ⬅ Dashboard
+</button>
+
+<script>
+function loadLaporan() {
+    const container = document.getElementById("laporanList");
+
+    if (!container) {
+        console.error("Element laporanList tidak ditemukan!");
+        return;
+    }
+
+    let data = [];
+
+    try {
+        data = JSON.parse(localStorage.getItem("laporan")) || [];
+    } catch (e) {
+        console.error("Error parsing localStorage:", e);
+        container.innerHTML = "<p>Error membaca data</p>";
+        return;
+    }
+
+    container.innerHTML = "";
+
+    if (data.length === 0) {
+        container.innerHTML = "<p>Tidak ada laporan</p>";
+        return;
+    }
+
+    data.reverse().forEach(item => {
+        const card = document.createElement("div");
+        card.className = "laporan-card";
+
+        card.innerHTML = `
+            <p><b>Waktu:</b> ${item.waktu || "-"}</p>
+            <p><b>Kategori:</b> ${item.kategori || "-"}</p>
+            <p><b>Judul:</b> ${item.judul || "-"}</p>
+            <p>${item.deskripsi || "-"}</p>
+            ${item.foto ? `<img src="${item.foto}" />` : ""}
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+// 🔥 BACK BUTTON FUNCTION
+function goDashboard() {
+    window.location.href = "/dashboard.html";
+}
+
+// 🔥 INIT
+document.addEventListener("DOMContentLoaded", loadLaporan);
+</script>
+
+</body>
+</html>

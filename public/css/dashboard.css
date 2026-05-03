@@ -136,10 +136,52 @@ body {
 .grafik {
     background: #ffffff;
     color: black;
-    height: 300px;
+    height: 380px;   /* 🔥 tambah tinggi */
+    padding-bottom: 10px;
 }
 
 .grafik canvas {
     width: 100% !important;
     height: 100% !important;
+}
+
+.laporan-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.laporan-card {
+    background: #ffffff;
+    color: black;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.laporan-card img {
+    width: 100%;
+    margin-top: 10px;
+    border-radius: 10px;
+}
+
+.back-floating {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 12px 18px;
+    background: #1c8c8c;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: 0.3s;
+    z-index: 999;
+}
+
+.back-floating:hover {
+    background: #145f5f;
+    transform: translateY(-2px);
 }

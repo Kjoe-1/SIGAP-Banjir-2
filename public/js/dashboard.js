@@ -30,9 +30,41 @@ const rainChart = new Chart(ctx, {
         }]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: false
+    responsive: true,
+    maintainAspectRatio: false,
+
+    layout: {
+        padding: {
+            top: 10,
+            bottom: 40,   // 🔥 ruang buat label X
+            left: 10,
+            right: 10
+        }
+    },
+
+    plugins: {
+        legend: {
+            display: false
+        }
+    },
+
+    scales: {
+        x: {
+            ticks: {
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 6,
+                padding: 15   // 🔥 dorong label X masuk
+            }
+        },
+        y: {
+            ticks: {
+                padding: 5
+            },
+            grace: '10%'   // 🔥 chart naik sedikit
+        }
     }
+}
 });
 
 // ================= FORMAT TIME =================
