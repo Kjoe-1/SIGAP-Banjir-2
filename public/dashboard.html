@@ -3,11 +3,10 @@
 <head>
     <title>Dashboard</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="css/dashboard.css">
-
-    <!-- LEAFLET (MAP) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -17,88 +16,80 @@
     <div class="navbar">
         <h2>Surabanyu</h2>
         <div class="nav-btn">
+            <button id="loginBtn">Login</button>
             <button id="uploadBtn">Unggah Foto</button>
-            <button id="adminBtn">Laporan Warga</button>
-            <button onclick="logout()">Logout</button>
+            <button id="logoutBtn">Logout</button>
         </div>
     </div>
 
-    <!-- LOKASI -->
-    <p class="lokasi">
-        Lokasi: Monitoring Area
-    </p>
+    <p class="lokasi">Lokasi: Surabaya</p>
 
-    <!-- GRID -->
     <div class="grid">
 
-        <!-- STATUS -->
-        <div class="status-card" id="statusCard">
-            <h3>Status: <span id="statusText">AMAN</span></h3>
-            <div class="icon">✔</div>
-            <p>Kondisi Normal</p>
-        </div>
+        <!-- LEFT -->
+        <div class="left">
 
-        <!-- MAP (INTERAKTIF) -->
-        <div class="map">
-            <div id="map" style="height:120px; border-radius:10px;"></div>
-        </div>
-
-        <!-- SENSOR -->
-        <div class="sensor">
-
-            <!-- KELEMBAPAN -->
-            <div class="circle-box">
-                <svg class="progress" width="120" height="120">
-                    <circle cx="60" cy="60" r="50"
-                        stroke="#ddd" stroke-width="10" fill="none"/>
-                    
-                    <circle id="humCircle" cx="60" cy="60" r="50"
-                        stroke="lime" stroke-width="10" fill="none"
-                        stroke-dasharray="314"
-                        stroke-dashoffset="314"/>
-                </svg>
-
-                <div class="label">
-                    <h3 id="humidityText">0%</h3>
-                    <p>Kelembapan</p>
-                </div>
+            <div class="card status-card">
+                <h3>Status: <span id="statusText">AMAN</span></h3>
+                <div class="icon">✔</div>
+                <p>Kondisi Normal</p>
             </div>
 
-            <!-- SUHU -->
-            <div class="circle-box">
-                <svg class="progress" width="120" height="120">
-                    <circle cx="60" cy="60" r="50"
-                        stroke="#ddd" stroke-width="10" fill="none"/>
-
-                    <circle id="tempCircle" cx="60" cy="60" r="50"
-                        stroke="orange" stroke-width="10" fill="none"
-                        stroke-dasharray="314"
-                        stroke-dashoffset="314"/>
-                </svg>
-
-                <div class="label">
-                    <h3 id="tempText">0°C</h3>
-                    <p>Suhu</p>
-                </div>
+            <div class="card map">
+                <div id="map"></div>
             </div>
 
         </div>
 
-        <!-- GRAFIK -->
-        <div class="grafik">
-            <h3>Grafik Curah Hujan</h3>
-            <canvas id="chart"></canvas>
+        <!-- RIGHT -->
+        <div class="right">
+
+            <div class="card summary-card">
+                <p>Waktu Data Terakhir</p>
+                <h2 id="current-time">-</h2>
+
+                <hr>
+
+                <p>Distance 1</p>
+                <h1 id="current-distance">- cm</h1>
+                <span id="status-badge" class="badge">-</span>
+
+                <div class="status-bar">
+                    <div class="indicator" id="indicator"></div>
+                </div>
+
+                <div class="status-label">
+                    <span>AMAN</span>
+                    <span>WASPADA</span>
+                    <span>SIAGA</span>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div>
+                        <p>Distance 1</p>
+                        <b id="distance1-value">-</b>
+                    </div>
+                    <div>
+                        <p>Distance 2</p>
+                        <b id="distance2-value">-</b>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card grafik">
+                <h3>Grafik Tinggi Muka Air (cm)</h3>
+                <canvas id="rainChart"></canvas>
+            </div>
+
         </div>
 
     </div>
 
 </div>
 
-<!-- LIBRARY -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- SCRIPT -->
 <script src="js/dashboard.js"></script>
 
 </body>

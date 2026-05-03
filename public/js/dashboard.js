@@ -11,91 +11,209 @@ function updateMap(lat, lng) {
     marker.setLatLng([lat, lng]);
 }
 
-// ================= STATUS =================
-const statusText = document.getElementById("statusText");
-const statusCard = document.getElementById("statusCard");
+// ================= API =================
+const API_URL = 'https://self-carrousel-culprit.ngrok-free.dev/api/get_ultrasonic.php';
 
 // ================= CHART =================
-let chart;
-const ctx = document.getElementById('chart');
+const ctx = document.getElementById('rainChart');
 
-chart = new Chart(ctx, {
-    type: 'line',
+const rainChart = new Chart(ctx, {
+    type: 'bar',
     data: {
         labels: [],
         datasets: [{
-            label: 'Suhu',
+            label: 'Tinggi muka Air (cm)',
             data: [],
-            borderColor: 'lime'
+            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+            barThickness: 20,
+            maxBarThickness: 25,
         }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
     }
 });
 
-// ================= ROLE =================
-fetch('/auth/me')
-.then(res => res.json())
-.then(user => {
-    if (user.role === 'admin') {
-        document.getElementById("uploadBtn").style.display = "none";
-    } else {
-        document.getElementById("adminBtn").style.display = "none";
-    }
-});
-
-// ================= REALTIME =================
-async function loadData() {
-    const res = await fetch('/sensor/latest');
-    const data = await res.json();
-
-    if (!data) return;
-
-    // TEXT
-    document.getElementById("tempText").innerText = data.suhu + "°C";
-    document.getElementById("humidityText").innerText = data.kelembapan + "%";
-
-    // GAUGE
-    const max = 314;
-
-    document.getElementById("humCircle").style.strokeDashoffset =
-        max - (data.kelembapan / 100) * max;
-
-    document.getElementById("tempCircle").style.strokeDashoffset =
-        max - (data.suhu / 50) * max;
-
-    // STATUS
-    if (data.kelembapan > 80) {
-        statusText.innerText = "AWAS";
-        statusCard.classList.add("awas");
-        document.querySelector(".icon").innerText = "!";
-    } else {
-        statusText.innerText = "AMAN";
-    }
-
-    // MAP
-    updateMap(data.lat, data.lng);
-
-    // CHART
-    chart.data.labels.push(new Date().toLocaleTimeString());
-    chart.data.datasets[0].data.push(data.suhu);
-
-    if (chart.data.labels.length > 10) {
-        chart.data.labels.shift();
-        chart.data.datasets[0].data.shift();
-    }
-
-    chart.update();
+// ================= FORMAT TIME =================
+function formatTimeLabel(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
-// PINDAH KE PAGE UPLOAD
-document.getElementById("uploadBtn").addEventListener("click", () => {
+// ================= UPDATE SUMMARY =================
+function updateSummary(latest) {
+
+    const indicator = document.getElementById("indicator");
+    const badge = document.getElementById('status-badge');
+
+    // ❌ NO DATA
+    if (!latest || latest.distance1 == null) {
+        indicator.style.display = "none";
+
+        document.getElementById('current-time').innerText = "-";
+        document.getElementById('current-distance').innerText = "- cm";
+        document.getElementById('distance1-value').innerText = "-";
+        document.getElementById('distance2-value').innerText = "-";
+
+        badge.innerText = "NO DATA";
+        badge.style.backgroundColor = "gray";
+
+        return;
+    }
+
+    // ✅ ADA DATA
+    indicator.style.display = "block";
+
+    document.getElementById('current-time').innerText = latest.waktu;
+
+    document.getElementById('current-distance').innerHTML =
+        `${latest.distance1} <small>cm</small>`;
+
+    document.getElementById('distance1-value').innerText = latest.distance1;
+    document.getElementById('distance2-value').innerText = latest.distance2;
+
+    // ================= STATUS FIX =================
+    let status = latest.status;
+
+    // 🔥 FIX: hindari undefined/null/empty
+    if (!status || status === "undefined") {
+        const value = parseFloat(latest.distance1);
+
+        if (value >= 200) status = "AMAN";
+        else if (value >= 100) status = "WASPADA";
+        else status = "SIAGA";
+    }
+
+    badge.innerText = status;
+
+    // ================= WARNA + POSISI =================
+    if (status === "AMAN") {
+        badge.style.backgroundColor = "green";
+        indicator.style.left = "20%";
+    } else if (status === "WASPADA") {
+        badge.style.backgroundColor = "orange";
+        indicator.style.left = "50%";
+    } else {
+        badge.style.backgroundColor = "red";
+        indicator.style.left = "80%";
+    }
+}
+
+// ================= FETCH DATA =================
+async function fetchData() {
+    try {
+        const res = await fetch(API_URL, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+
+        const json = await res.json();
+
+        // ❌ kalau data kosong
+        if (!json.data || json.data.length === 0) {
+            updateSummary(null);
+            return;
+        }
+
+        const rows = json.data.slice().reverse();
+
+        const labels = rows.map(r => formatTimeLabel(r.waktu));
+        const values = rows.map(r => parseFloat(r.distance1));
+
+        rainChart.data.labels = labels;
+        rainChart.data.datasets[0].data = values;
+        rainChart.update();
+
+        const latest = rows[rows.length - 1];
+        updateSummary(latest);
+
+        if (latest.lat && latest.lng) {
+            updateMap(latest.lat, latest.lng);
+        }
+
+    } catch (err) {
+        console.error(err);
+        updateSummary(null);
+    }
+}
+
+fetchData();
+setInterval(fetchData, 10000);
+
+// ================= FETCH DATA =================
+async function fetchData() {
+    try {
+        const res = await fetch(API_URL, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+
+        const json = await res.json();
+        const rows = json.data.slice().reverse();
+
+        const labels = rows.map(r => formatTimeLabel(r.waktu));
+        const values = rows.map(r => parseFloat(r.distance1));
+
+        rainChart.data.labels = labels;
+        rainChart.data.datasets[0].data = values;
+        rainChart.update();
+
+        const latest = rows[rows.length - 1];
+        updateSummary(latest);
+
+        if (latest.lat && latest.lng) {
+            updateMap(latest.lat, latest.lng);
+        }
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+fetchData();
+setInterval(fetchData, 10000);
+
+// ================= AUTH BUTTON CONTROL =================
+const loginBtn = document.getElementById("loginBtn");
+const uploadBtn = document.getElementById("uploadBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+
+function renderAuth() {
+    const isLogin = localStorage.getItem("isLogin");
+
+    if (isLogin === "true") {
+        loginBtn.style.display = "none";
+        uploadBtn.style.display = "inline-block";
+        logoutBtn.style.display = "inline-block";
+    } else {
+        loginBtn.style.display = "inline-block";
+        uploadBtn.style.display = "none";
+        logoutBtn.style.display = "none";
+    }
+}
+
+// ================= EVENT =================
+loginBtn.onclick = () => {
+    window.location.href = "/login.html";
+};
+
+uploadBtn.onclick = () => {
     window.location.href = "/upload.html";
-});
+};
 
-// REFRESH
-setInterval(loadData, 3000);
-loadData();
+logoutBtn.onclick = logout;
 
-// ================= LOGOUT =================
+// ================= LOGOUT ANIMATION =================
 function logout() {
-    window.location.href = "/auth/logout";
+    document.body.style.transition = "opacity 0.6s ease";
+    document.body.style.opacity = "0";
+
+    setTimeout(() => {
+        localStorage.removeItem("isLogin");
+        window.location.href = "/login.html";
+    }, 600);
 }
+// ================= INIT =================
+renderAuth();
