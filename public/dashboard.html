@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Dashboard</title>
+
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <!-- NAVBAR -->
+      <div class="navbar">
+        <h2>Surabanyu</h2>
+        <div class="nav-btn">
+          <button id="loginBtn">Login</button>
+          <button id="uploadBtn">Unggah Foto</button>
+          <button id="logoutBtn">Logout</button>
+        </div>
+      </div>
+
+      <p class="lokasi">Lokasi: Surabaya</p>
+
+      <div class="grid">
+        <!-- LEFT -->
+        <div class="left">
+          <div class="card status-card">
+            <h3>Status AI/ML: <span id="statusText">AMAN</span></h3>
+            <div class="icon" id="statusIcon">✔</div>
+            <p id="statusDesc">Kondisi Normal</p>
+            <p>Confidence: <b id="confidenceText">-</b></p>
+          </div>
+
+          <div class="card map">
+            <div id="map"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right">
+          <div class="card summary-card">
+            <p>Waktu Data Terakhir</p>
+            <h2 id="current-time">-</h2>
+
+            <hr />
+
+            <p>Distance 1</p>
+            <h1 id="current-distance">- cm</h1>
+            <span id="status-badge" class="badge">-</span>
+
+            <div class="status-bar">
+              <div class="indicator" id="indicator"></div>
+            </div>
+
+            <div class="status-label">
+              <span>AMAN</span>
+              <span>WASPADA</span>
+              <span>SIAGA</span>
+            </div>
+
+            <hr />
+
+            <div class="row">
+              <div>
+                <p>Distance 1</p>
+                <b id="distance1-value">-</b>
+              </div>
+              <div>
+                <p>Distance 2</p>
+                <b id="distance2-value">-</b>
+              </div>
+            </div>
+          </div>
+
+          <div class="card grafik">
+            <h3>Grafik Tinggi Muka Air (cm)</h3>
+            <canvas id="rainChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="js/dashboard.js"></script>
+  </body>
+</html>

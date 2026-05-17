@@ -1,0 +1,56 @@
+body {
+    margin: 0;
+    font-family: Arial;
+
+    background-image: url("https://asset.kompas.com/crops/YOu2EOpvipCBcuB7cb_OEkUbwDc=/120x0:4744x3083/1200x800/data/photo/2025/11/27/6927ab4361452.jpg");
+    background-size: cover;
+    background-position: center;
+    font-family: Arial;
+}
+
+
+.container {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card {
+    width: 320px;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+button {
+    padding: 10px;
+    border: none;
+    background: #00e1ff;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.text {
+    margin: 0;
+    font-size: 14px;
+}

@@ -1,0 +1,29 @@
+body {
+    margin: 0;
+    font-family: Arial;
+    background: url('../images/banjir.jpg') no-repeat center;
+    background-size: cover;
+}
+
+.container {
+    width: 300px;
+    margin: 100px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+input {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background: teal;
+    color: white;
+    border: none;
+}

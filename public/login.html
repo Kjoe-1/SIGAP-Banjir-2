@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="css/login.css">
+</head>
+
+<body>
+
+<div class="container">
+    <div class="card">
+
+        <h2>Login</h2>
+
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <button type="submit">Login</button>
+        </form>
+
+        <p class="text">
+            Belum punya akun? <a href="register.html">Daftar</a>
+        </p>
+
+    </div>
+</div>
+
+<!-- 🔥 SCRIPT PALING BAWAH -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.getElementById("loginForm");
+
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        let users = [];
+
+        try {
+            users = JSON.parse(localStorage.getItem("users")) || [];
+        } catch (e) {
+            users = [];
+        }
+
+        const user = users.find(u => 
+            u.email === email && u.password === password
+        );
+
+        if (user) {
+            localStorage.setItem("isLogin", "true");
+            localStorage.setItem("currentUser", JSON.stringify(user));
+
+            alert("Login berhasil!");
+            window.location.href = "dashboard.html";
+        } else {
+            alert("Email atau password salah!");
+        }
+
+    });
+
+});
+</script>
+
+</body>
+</html>
