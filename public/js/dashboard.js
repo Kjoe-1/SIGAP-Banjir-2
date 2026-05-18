@@ -250,26 +250,24 @@ function logout() {
 renderAuth();
 
 async function loadAIPrediction() {
-  const response = await fetch("/api/predict", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      distance_cm: 40.1,
-      rainfall_mm: 3.3,
-      tip_count: 11,
-    }),
-  });
-
+  const response = await fetch("/api/latest-prediction");
   const data = await response.json();
 
   if (data.success) {
     const pred = data.prediction.risk_prediction;
     const conf = data.prediction.confidence;
+    const sensor = data.sensor;
 
     document.getElementById("statusText").innerText = pred;
     document.getElementById("confidenceText").innerText = conf;
+
+    document.getElementById("current-time").innerText = sensor.waktu;
+    document.getElementById("current-distance").innerText =
+      sensor.distance1 + " cm";
+    document.getElementById("distance1-value").innerText =
+      sensor.distance1 + " cm";
+    document.getElementById("distance2-value").innerText =
+      sensor.distance2 + " cm";
 
     if (pred === "AWAS") {
       document.getElementById("statusIcon").innerText = "⚠";
