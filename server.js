@@ -2,7 +2,7 @@ const { execFile } = require("child_process");
 const express = require("express");
 const path = require("path");
 const mysql = require("mysql2/promise");
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
 
 const app = express();
 const dbConfig = {
@@ -122,6 +122,68 @@ app.get("/api/latest-prediction", async (req, res) => {
     });
   }
 });
+
+app.get("/api/forecast-1hour", async (req, res) => {
+  try {
+    const apiUrl =
+      "https://self-carrousel-culprit.ngrok-free.dev/api/get_ultrasonic.php";
+
+    const apiResponse = await fetch(apiUrl, {
+      headers: {
+        "ngrok-skip-browser-warning": "true",
+      },
+    });
+
+    const apiData = await apiResponse.json();
+
+    if (!apiData.data || apiData.data.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Data sensor dari API tidak ditemukan",
+      });
+    }
+
+    const latest = apiData.data[0];
+
+    const payload = JSON.stringify({
+      distance1: latest.distance1 || 0,
+      distance2: latest.distance2 || 0,
+      curah_hujan: latest.curah_hujan || 0,
+      curah_hujan_1h: latest.curah_hujan_1h || 0,
+      jumlah_tip: latest.jumlah_tip || 0,
+    });
+
+    execFile(
+      "python",
+      ["predict_1hour.py", payload],
+      (error, stdout, stderr) => {
+        if (error) {
+          console.error("Forecast ML error:", error);
+          console.error("stderr:", stderr);
+          return res.status(500).json({
+            success: false,
+            message: "Gagal menjalankan model forecast 1 jam",
+          });
+        }
+
+        const forecast = JSON.parse(stdout);
+
+        res.json({
+          success: true,
+          sensor: latest,
+          forecast: forecast,
+        });
+      },
+    );
+  } catch (error) {
+    console.error("API forecast error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil forecast 1 jam",
+    });
+  }
+});
+
 app.listen(3000, () => {
   console.log("Server jalan di http://localhost:3000");
 });

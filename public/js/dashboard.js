@@ -280,6 +280,81 @@ async function loadAIPrediction() {
       document.getElementById("statusDesc").innerText = "Kondisi Normal";
     }
   }
+  const forecastResponse = await fetch("/api/forecast-1hour");
+  const forecastData = await forecastResponse.json();
+
+  if (forecastData.success) {
+    const forecast = forecastData.forecast;
+
+    document.getElementById("forecastStatusText").innerText =
+      forecast.status_next_1h;
+
+    document.getElementById("forecastRainText").innerText =
+      forecast.rainfall_next_1h;
+
+    document.getElementById("forecastConfidenceText").innerText =
+      forecast.confidence_next_1h;
+    const forecastChartCanvas = document.getElementById("forecastRainChart");
+
+    if (forecastChartCanvas) {
+      if (window.forecastRainChartInstance) {
+        window.forecastRainChartInstance.destroy();
+      }
+      window.forecastRainChartInstance = new Chart(forecastChartCanvas, {
+        type: "line",
+        data: {
+          labels: ["Sekarang", "1 Jam ke Depan"],
+          datasets: [
+            {
+              label: "Curah Hujan Aktual/Prediksi (mm)",
+              data: [
+                Number(forecastData.sensor.curah_hujan || 0),
+                Number(forecast.rainfall_next_1h || 0),
+              ],
+              tension: 0.3,
+            },
+            {
+              label: "Batas SIAGA (1 mm)",
+              data: [1, 1],
+              borderDash: [5, 5],
+              pointRadius: 0,
+            },
+            {
+              label: "Batas AWAS (3 mm)",
+              data: [3, 3],
+              borderDash: [5, 5],
+              pointRadius: 0,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                afterLabel: function (context) {
+                  const value = context.parsed.y;
+
+                  if (value >= 3) return "Status: AWAS";
+                  if (value >= 1) return "Status: SIAGA";
+                  return "Status: AMAN";
+                },
+              },
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: "Curah Hujan (mm)",
+              },
+            },
+          },
+        },
+      });
+    }
+  }
 }
 
 loadAIPrediction();
