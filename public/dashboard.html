@@ -171,51 +171,14 @@
 
         <hr>
 
-        <div class="water-level" id="waterLevelSection">
+        <div class="water-level">
 
-            <p id="waterLevelLabel">Tinggi Muka Air</p>
+            <p>Tinggi Muka Air</p>
 
             <h1 id="current-distance">
                 -
             </h1>
 
-        </div>
-
-        <div class="weather-section" id="weatherSection" style="display:none">
-            <div class="weather-grid">
-                <div class="weather-item">
-                    <p>Suhu</p>
-                    <b id="weather-temp">-</b>
-                </div>
-                <div class="weather-item">
-                    <p>Kelembaban</p>
-                    <b id="weather-humi">-</b>
-                </div>
-                <div class="weather-item">
-                    <p>Angin Rata2</p>
-                    <b id="weather-windavg">-</b>
-                </div>
-                <div class="weather-item">
-                    <p>Angin Maks</p>
-                    <b id="weather-windmax">-</b>
-                </div>
-                <div class="weather-item">
-                    <p>Arah Angin</p>
-                    <b id="weather-windir">-</b>
-                </div>
-                <div class="weather-item">
-                    <p>Tekanan Udara</p>
-                    <b id="weather-baro">-</b>
-                </div>
-                <div class="weather-item">
-                    <p>Curah Hujan 1h</p>
-                    <b id="weather-rain1h">-</b>
-                </div>
-                <div class="weather-item">
-                    <p>Curah Hujan 24h</p>
-                    <b id="weather-rain24h">-</b>
-                </div>
-            </div>
         </div>
 
         <div class="status-bar">
@@ -238,7 +201,7 @@
 
             <div class="mini-card">
 
-                <p id="miniLabel1">Distance 1</p>
+                <p>Distance 1</p>
 
                 <b id="distance1-value">
                     -
@@ -248,7 +211,7 @@
 
             <div class="mini-card">
 
-                <p id="miniLabel2">Distance 2</p>
+                <p>Distance 2</p>
 
                 <b id="distance2-value">
                     -
@@ -263,27 +226,13 @@
     <div class="chart-grid">
 
     <div class="card grafik">
-        <h3 id="chartTitle">Grafik Tinggi Muka Air (cm)</h3>
+        <h3>Grafik Tinggi Muka Air (cm)</h3>
         <canvas id="rainChart"></canvas>
     </div>
 
-    <div class="card grafik perbandingan-card">
-        <div class="perbandingan-header">
-            <h3>Prediksi vs Aktual <span id="prediksiKeandalan" class="keandalan-badge"></span></h3>
-            <div class="horizon-tabs" id="horizonTabs">
-                <button class="horizon-btn active" data-h="1">1 Jam</button>
-                <button class="horizon-btn" data-h="3">3 Jam</button>
-                <button class="horizon-btn" data-h="6">6 Jam</button>
-                <button class="horizon-btn" data-h="12">12 Jam</button>
-                <button class="horizon-btn" data-h="24">24 Jam</button>
-            </div>
-        </div>
-        <div id="peringatanAlert" class="peringatan-alert" style="display:none"></div>
-        <canvas id="prediksiChart"></canvas>
-        <div class="chart-legend">
-            <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span> Hasil Prediksi</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#f97316"></span> Data Asli</span>
-        </div>
+    <div class="card grafik">
+        <h3>Grafik Prediksi Hujan 1 Jam ke Depan</h3>
+        <canvas id="forecastRainChart"></canvas>
     </div>
 
 </div>
