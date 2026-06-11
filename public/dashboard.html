@@ -1,95 +1,248 @@
 <!DOCTYPE html>
-<html>
+
+<html lang="en">
 <head>
-    <title>Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGAP Dashboard</title>
 
-    <link rel="stylesheet" href="css/dashboard.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="css/dashboard.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
 </head>
+
 <body>
 
-<div class="container">
+<div class="dashboard-layout">
+
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+
+    <div class="sidebar-header">
+        <h1>SIGAP-Banjir</h1>
+        <p>Sistem Monitoring Banjir</p>
+    </div>
+
+    <div class="location-section">
+
+        <h3>Lokasi Monitoring</h3>
+
+        <button class="location-btn active" id="lokasi1">
+            📍 Lokasi 1
+        </button>
+
+        <button class="location-btn" id="lokasi2">
+            📍 Lokasi 2
+        </button>
+
+        <button class="location-btn" id="lokasi3">
+            📍 Lokasi 3
+        </button>
+
+    </div>
+
+    <div class="sidebar-info">
+
+        <h4>Status Sistem</h4>
+        <span class="online-dot"></span>
+        <span>Online</span>
+
+        <hr>
+
+        <h4>Lokasi Aktif</h4>
+        <p id="active-location">
+            Surabaya
+        </p>
+
+    </div>
+
+</aside>
+
+<!-- MAIN -->
+<main class="main-content">
 
     <!-- NAVBAR -->
     <div class="navbar">
-        <h2>Surabanyu</h2>
+
+        <div>
+            <h2>Dashboard Monitoring Banjir</h2>
+            <p class="lokasi">
+                Lokasi:
+                <span id="lokasi-text">
+                    Surabaya
+                </span>
+            </p>
+        </div>
+
         <div class="nav-btn">
+            <span id="clock" class="clock"></span>
+
             <button id="loginBtn">Login</button>
             <button id="uploadBtn">Unggah Foto</button>
             <button id="logoutBtn">Logout</button>
         </div>
+
     </div>
 
-    <p class="lokasi">Lokasi: Surabaya</p>
+    <!-- TOP GRID -->
+    <div class="top-grid">
 
-    <div class="grid">
+        <!-- STATUS -->
+        <div class="card status-card">
 
-        <!-- LEFT -->
-        <div class="left">
+            <h3>
+                Status AI/ML:
+                <span id="statusText">
+                    AMAN
+                </span>
+            </h3>
 
-            <div class="card status-card">
-                <h3>Status: <span id="statusText">AMAN</span></h3>
-                <div class="icon">✔</div>
-                <p>Kondisi Normal</p>
+            <div class="icon" id="statusIcon">
+                ✔
             </div>
 
-            <div class="card map">
-                <div id="map"></div>
-            </div>
+            <p id="statusDesc">
+                Kondisi Normal
+            </p>
+
+            <p>
+                Confidence:
+                <b id="confidenceText">
+                    -
+                </b>
+            </p>
+
+            <hr>
+
+            <h3>
+                Prediksi 1 Jam ke Depan:
+                <span id="forecastStatusText">
+                    -
+                </span>
+            </h3>
+
+            <p>
+                Prediksi Hujan:
+                <b id="forecastRainText">
+                    -
+                </b> mm
+            </p>
+
+            <p>
+                Confidence Forecast:
+                <b id="forecastConfidenceText">
+                    -
+                </b>
+            </p>
 
         </div>
 
-        <!-- RIGHT -->
-        <div class="right">
+        <!-- MAP -->
+        <div class="card map-card">
 
-            <div class="card summary-card">
+            <h3>Peta Lokasi</h3>
+
+            <div id="map"></div>
+
+        </div>
+
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="card summary-card">
+
+        <div class="summary-header">
+
+            <div>
                 <p>Waktu Data Terakhir</p>
                 <h2 id="current-time">-</h2>
-
-                <hr>
-
-                <p>Distance 1</p>
-                <h1 id="current-distance">- cm</h1>
-                <span id="status-badge" class="badge">-</span>
-
-                <div class="status-bar">
-                    <div class="indicator" id="indicator"></div>
-                </div>
-
-                <div class="status-label">
-                    <span>AMAN</span>
-                    <span>WASPADA</span>
-                    <span>SIAGA</span>
-                </div>
-
-                <hr>
-
-                <div class="row">
-                    <div>
-                        <p>Distance 1</p>
-                        <b id="distance1-value">-</b>
-                    </div>
-                    <div>
-                        <p>Distance 2</p>
-                        <b id="distance2-value">-</b>
-                    </div>
-                </div>
             </div>
 
-            <div class="card grafik">
-                <h3>Grafik Tinggi Muka Air (cm)</h3>
-                <canvas id="rainChart"></canvas>
+            <span id="status-badge" class="badge">
+                -
+            </span>
+
+        </div>
+
+        <hr>
+
+        <div class="water-level">
+
+            <p>Tinggi Muka Air</p>
+
+            <h1 id="current-distance">
+                -
+            </h1>
+
+        </div>
+
+        <div class="status-bar">
+
+            <div class="indicator" id="indicator"></div>
+
+        </div>
+
+        <div class="status-label">
+
+            <span>AMAN</span>
+            <span>WASPADA</span>
+            <span>SIAGA</span>
+
+        </div>
+
+        <hr>
+
+        <div class="row">
+
+            <div class="mini-card">
+
+                <p>Distance 1</p>
+
+                <b id="distance1-value">
+                    -
+                </b>
+
+            </div>
+
+            <div class="mini-card">
+
+                <p>Distance 2</p>
+
+                <b id="distance2-value">
+                    -
+                </b>
+
             </div>
 
         </div>
 
+    </div>
+
+    <div class="chart-grid">
+
+    <div class="card grafik">
+        <h3>Grafik Tinggi Muka Air (cm)</h3>
+        <canvas id="rainChart"></canvas>
+    </div>
+
+    <div class="card grafik">
+        <h3>Grafik Prediksi Hujan 1 Jam ke Depan</h3>
+        <canvas id="forecastRainChart"></canvas>
     </div>
 
 </div>
 
+</main>
+
+</div>
+
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script src="js/dashboard.js"></script>
 
 </body>
