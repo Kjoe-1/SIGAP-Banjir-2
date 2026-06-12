@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGAP - Analitik Prediksi</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="dashboard-layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>SIGAP-Banjir</h1>
+            <p>Analitik Prediksi</p>
+        </div>
+        <div class="location-section">
+            <h3>Lokasi</h3>
+            <button class="location-btn" id="lok1">📍 Lokasi 1</button>
+            <button class="location-btn" id="lok2">📍 Lokasi 2</button>
+            <button class="location-btn active" id="lok3">📍 Lokasi 3</button>
+        </div>
+        <div class="sidebar-info">
+            <h4>Keterangan</h4>
+            <p style="font-size:11px;margin-top:6px;line-height:1.4">
+                <b>Keandalan:</b><br>
+                <span class="keandalan-badge badge-andal">andal</span> recall &gt; 80%<br>
+                <span class="keandalan-badge badge-indikatif">indikatif</span> recall ~27%<br>
+                <span class="keandalan-badge badge-tidak">tidak tersedia</span> data minim
+            </p>
+            <hr>
+            <p id="active-location" style="font-size:12px">Kalikobor</p>
+            <p style="font-size:11px;opacity:0.7" id="sensorTipe"></p>
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <div class="navbar">
+            <div>
+                <h2>Analitik & Perbandingan Prediksi</h2>
+                <p class="lokasi">Lokasi: <span id="lokasi-text">Kalikobor</span></p>
+            </div>
+            <div class="nav-btn">
+                <a href="/dashboard.html" style="text-decoration:none"><button>⬅ Dashboard</button></a>
+            </div>
+        </div>
+
+        <!-- STATUS RINGKAS -->
+        <div class="top-grid" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="card" style="text-align:center">
+                <p style="font-size:12px;color:#666">Status Saat Ini</p>
+                <h2 id="ringkasanStatus" style="margin:4px 0">-</h2>
+                <p style="font-size:12px;color:#666">Conf: <b id="ringkasanConf">-</b></p>
+            </div>
+            <div class="card" style="text-align:center">
+                <p style="font-size:12px;color:#666">Tinggi Air</p>
+                <h2 id="ringkasanTinggi" style="margin:4px 0">-</h2>
+            </div>
+            <div class="card" style="text-align:center">
+                <p style="font-size:12px;color:#666">Prediksi 1 Jam</p>
+                <h2 id="ringkasanPred1" style="margin:4px 0">-</h2>
+                <p style="font-size:12px;color:#666"><b id="ringkasanConf1">-</b></p>
+            </div>
+        </div>
+
+        <!-- WARNING ALERT -->
+        <div id="peringatanAlert" class="peringatan-alert" style="display:none;margin-bottom:12px"></div>
+
+        <!-- CHART 1: FORECAST 24 JAM -->
+        <div class="card grafik" style="margin-bottom:12px;height:auto;padding-bottom:20px">
+            <h3>Forecast 24 Jam <span id="keandalanBadge" class="keandalan-badge"></span></h3>
+            <p style="font-size:12px;color:#666;margin-bottom:10px" id="catatanTipe"></p>
+            <canvas id="forecastChart" style="height:260px !important"></canvas>
+            <div class="chart-legend" style="margin-top:6px">
+                <span class="legend-item"><span class="legend-dot" style="background:#22c55e"></span> AMAN</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span> WASPADA</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span> SIAGA</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span> Tinggi Air</span>
+            </div>
+        </div>
+
+        <!-- CHART 2: PERBANDINGAN PREDIKSI VS AKTUAL -->
+        <div class="card grafik perbandingan-card" style="margin-bottom:12px;height:auto;padding-bottom:20px">
+            <div class="perbandingan-header">
+                <h3>Prediksi vs Data Asli</h3>
+                <div class="horizon-tabs" id="horizonTabs">
+                    <button class="horizon-btn active" data-h="1">1 Jam</button>
+                    <button class="horizon-btn" data-h="3">3 Jam</button>
+                    <button class="horizon-btn" data-h="6">6 Jam</button>
+                    <button class="horizon-btn" data-h="12">12 Jam</button>
+                    <button class="horizon-btn" data-h="24">24 Jam</button>
+                </div>
+            </div>
+            <canvas id="bandingChart" style="height:260px !important"></canvas>
+            <div class="chart-legend">
+                <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span> Hasil Prediksi</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#f97316"></span> Data Asli</span>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script src="js/prediksi.js"></script>
+</body>
+</html>

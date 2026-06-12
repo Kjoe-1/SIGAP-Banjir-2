@@ -28,10 +28,6 @@ function setLocation(key) {
 
   updateModeUI();
   fetchData();
-  horizonAktif = "1";
-  document.querySelectorAll(".horizon-btn").forEach((b) => b.classList.remove("active"));
-  const h1 = document.querySelector('.horizon-btn[data-h="1"]');
-  if (h1) h1.classList.add("active");
   loadAIPrediction();
 }
 
@@ -297,57 +293,6 @@ async function loadAIPrediction() {
     }
   } catch (e) {
     console.error("Forecast error:", e);
-  }
-
-  loadPerbandingan();
-}
-
-// ================= PERBANDINGAN PREDIKSI VS AKTUAL =================
-let horizonAktif = "1";
-
-async function loadPerbandingan() {
-  try {
-    const feLokasi = locations[activeLocation].lokasi;
-    const res = await fetch("/api/perbandingan?lokasi=" + feLokasi + "&max=50");
-    const data = await res.json();
-    if (!data.success) return;
-
-    const hData = data[horizonAktif];
-    if (!hData || !hData.waktu || hData.waktu.length === 0) return;
-
-    const labels = hData.waktu.map((t) => {
-      const d = new Date(t);
-      return d.toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-    });
-
-    const canvas = document.getElementById("prediksiChart");
-    if (!canvas) return;
-    if (window.prediksiChartInstance) window.prediksiChartInstance.destroy();
-
-    window.prediksiChartInstance = new Chart(canvas, {
-      type: "line",
-      data: {
-        labels,
-        datasets: [
-          { label: "Hasil Prediksi", data: hData.prediksi, borderColor: "#3b82f6", backgroundColor: "rgba(59,130,236,0.1)", tension: 0.3, pointRadius: 3, pointHoverRadius: 5, fill: false },
-          { label: "Data Asli", data: hData.aktual, borderColor: "#f97316", backgroundColor: "rgba(249,115,22,0.1)", tension: 0.3, pointRadius: 3, pointHoverRadius: 5, fill: false },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ": " + ctx.parsed.y.toFixed(1) + " cm" } },
-        },
-        scales: {
-          x: { ticks: { maxRotation: 45, font: { size: 10 }, maxTicksLimit: 10 } },
-          y: { beginAtZero: true, title: { display: true, text: "Tinggi Air (cm)" } },
-        },
-      },
-    });
-  } catch (e) {
-    console.error("Perbandingan error:", e);
   }
 }
 

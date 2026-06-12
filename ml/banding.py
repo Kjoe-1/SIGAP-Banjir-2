@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Bandingkan hasil prediksi vs data asli (time series) per horizon.
-Output JSON untuk chart perbandingan.
+Output JSON: data berurutan dari N titik TERAKHIR (bukan sample acak).
 """
 import argparse, json, pickle, os, warnings
 warnings.filterwarnings("ignore")
@@ -32,7 +32,7 @@ def _fitur_lok2(seri, jam, fitur):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--lokasi", type=int, required=True, choices=[1, 2, 3])
-    ap.add_argument("--max-points", type=int, default=50)
+    ap.add_argument("--max-points", type=int, default=48)
     a = ap.parse_args()
     cfg = C.LOKASI[a.lokasi]
     base = C.BASE
@@ -55,9 +55,9 @@ def main():
 
     if cfg["tipe"] == "forecast_hujan":
         target_map = {1: "target_1", 3: "target_3", 6: "target_6", 12: "target_12", 24: "target_24"}
-        step = max(1, len(df) // a.max_points)
+        start = max(0, len(df) - a.max_points)
 
-        for i in range(0, len(df), step):
+        for i in range(start, len(df)):
             row = df.iloc[i]
             jam = row["jam"]
 
@@ -84,25 +84,27 @@ def main():
 
     elif cfg["tipe"] == "forecast_tren":
         seri = df.set_index("jam")["distance_avg"]
-        step = max(1, len(df) // a.max_points)
+        start = max(0, len(df) - a.max_points)
 
-        for i in range(0, len(df), step):
+        for i in range(start, len(df)):
             jam = df.iloc[i]["jam"]
             x = _fitur_lok2(seri, jam, b["fitur"])
             if x is None:
                 continue
 
-            dist_now = float(seri.get(jam, np.nan))
-            if pd.isna(dist_now):
-                continue
-            tinggi_aktual = round(ref - dist_now, 1)
-
             for h in HOR:
+                jam_aktual = jam + pd.Timedelta(hours=h)
+                dist_aktual = float(seri.get(jam_aktual, np.nan))
+                if pd.isna(dist_aktual):
+                    continue
+
                 try:
                     dist_pred, _, _ = _conf(b["models"][h], x, t_was, t_sia)
                 except Exception:
                     continue
+
                 tinggi_pred = round(ref - dist_pred, 1)
+                tinggi_aktual = round(ref - dist_aktual, 1)
                 out[str(h)]["waktu"].append(str(jam))
                 out[str(h)]["prediksi"].append(tinggi_pred)
                 out[str(h)]["aktual"].append(tinggi_aktual)
