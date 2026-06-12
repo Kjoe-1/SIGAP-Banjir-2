@@ -73,11 +73,14 @@ app.get("/api/latest-prediction", async (req, res) => {
     const apiUrl =
       "https://self-carrousel-culprit.ngrok-free.dev/api/get_ultrasonic.php";
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
     const apiResponse = await fetch(apiUrl, {
-      headers: {
-        "ngrok-skip-browser-warning": "true",
-      },
+      headers: { "ngrok-skip-browser-warning": "true" },
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
 
     const apiData = await apiResponse.json();
 
@@ -128,11 +131,14 @@ app.get("/api/forecast-1hour", async (req, res) => {
     const apiUrl =
       "https://self-carrousel-culprit.ngrok-free.dev/api/get_ultrasonic.php";
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
     const apiResponse = await fetch(apiUrl, {
-      headers: {
-        "ngrok-skip-browser-warning": "true",
-      },
+      headers: { "ngrok-skip-browser-warning": "true" },
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
 
     const apiData = await apiResponse.json();
 

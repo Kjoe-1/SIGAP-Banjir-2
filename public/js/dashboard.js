@@ -232,67 +232,73 @@ renderAuth();
 
 // ================= ML PREDICTION =================
 async function loadAIPrediction() {
+  const feLokasi = locations[activeLocation].lokasi;
+
+  // Load prediksi utama (cepet)
   try {
-    const feLokasi = locations[activeLocation].lokasi;
-    const [resPred, resFc] = await Promise.all([
-      fetch("/api/prediksi?lokasi=" + feLokasi),
-      fetch("/api/forecast-1hour"),
-    ]);
-    const data = await resPred.json();
-    const fcData = await resFc.json();
+    const res = await fetch("/api/prediksi?lokasi=" + feLokasi);
+    const data = await res.json();
 
-    if (data.success) {
-      const skrg = data.sekarang;
-      const warn = data.peringatan;
-      const p1 = data.prediksi ? data.prediksi["1"] : null;
+    if (!data.success) return;
 
-      document.getElementById("statusText").innerText = skrg.status;
-      document.getElementById("confidenceText").innerText = skrg.confidence != null ? Math.round(skrg.confidence * 100) + "%" : "-";
+    const skrg = data.sekarang;
+    const warn = data.peringatan;
+    const p1 = data.prediksi ? data.prediksi["1"] : null;
 
-      if (skrg.status === "SIAGA") {
-        document.getElementById("statusIcon").innerText = "!";
-        document.getElementById("statusDesc").innerText = "Perlu pemantauan";
-      } else if (skrg.status === "WASPADA") {
-        document.getElementById("statusIcon").innerText = "⚠";
-        document.getElementById("statusDesc").innerText = "Waspada banjir";
-      } else {
-        document.getElementById("statusIcon").innerText = "✔";
-        document.getElementById("statusDesc").innerText = "Kondisi Normal";
-      }
+    document.getElementById("statusText").innerText = skrg.status;
+    document.getElementById("confidenceText").innerText = skrg.confidence != null ? Math.round(skrg.confidence * 100) + "%" : "-";
 
-      if (p1 && p1.status !== "tidak_tersedia") {
-        document.getElementById("forecastStatusText").innerText = p1.status;
-        document.getElementById("forecastRainText").innerText = p1.tinggi_air_cm != null ? p1.tinggi_air_cm + " cm" : "-";
-        document.getElementById("forecastConfidenceText").innerText = p1.confidence != null ? Math.round(p1.confidence * 100) + "%" : "-";
-      }
-
-      const alertEl = document.getElementById("peringatanAlert");
-      if (warn && warn.ada) {
-        alertEl.style.display = "block";
-        alertEl.className = "peringatan-alert peringatan-" + warn.status.toLowerCase();
-        alertEl.innerHTML = '<span class="alert-icon">⚠️</span> ' + warn.pesan + ' <span class="alert-close" onclick="this.parentElement.style.display=\'none\'">✕</span>';
-      } else {
-        alertEl.style.display = "none";
-      }
-
-      const badgeEl = document.getElementById("prediksiKeandalan");
-      if (data.tipe === "klasifikasi") {
-        badgeEl.innerText = "klasifikasi";
-        badgeEl.className = "keandalan-badge badge-tidak";
-      } else if (p1) {
-        badgeEl.innerText = p1.keandalan || "-";
-        badgeEl.className = "keandalan-badge badge-" + (p1.keandalan || "tidak");
-      }
+    if (skrg.status === "SIAGA") {
+      document.getElementById("statusIcon").innerText = "!";
+      document.getElementById("statusDesc").innerText = "Perlu pemantauan";
+    } else if (skrg.status === "WASPADA") {
+      document.getElementById("statusIcon").innerText = "⚠";
+      document.getElementById("statusDesc").innerText = "Waspada banjir";
+    } else {
+      document.getElementById("statusIcon").innerText = "✔";
+      document.getElementById("statusDesc").innerText = "Kondisi Normal";
     }
 
+    if (p1 && p1.status !== "tidak_tersedia") {
+      document.getElementById("forecastStatusText").innerText = p1.status;
+      document.getElementById("forecastRainText").innerText = p1.tinggi_air_cm != null ? p1.tinggi_air_cm + " cm" : "-";
+      document.getElementById("forecastConfidenceText").innerText = p1.confidence != null ? Math.round(p1.confidence * 100) + "%" : "-";
+    }
+
+    const alertEl = document.getElementById("peringatanAlert");
+    if (warn && warn.ada) {
+      alertEl.style.display = "block";
+      alertEl.className = "peringatan-alert peringatan-" + warn.status.toLowerCase();
+      alertEl.innerHTML = '<span class="alert-icon">⚠️</span> ' + warn.pesan + ' <span class="alert-close" onclick="this.parentElement.style.display=\'none\'">✕</span>';
+    } else {
+      alertEl.style.display = "none";
+    }
+
+    const badgeEl = document.getElementById("prediksiKeandalan");
+    if (data.tipe === "klasifikasi") {
+      badgeEl.innerText = "klasifikasi";
+      badgeEl.className = "keandalan-badge badge-tidak";
+    } else if (p1) {
+      badgeEl.innerText = p1.keandalan || "-";
+      badgeEl.className = "keandalan-badge badge-" + (p1.keandalan || "tidak");
+    }
+  } catch (e) {
+    console.error("ML prediksi error:", e);
+  }
+
+  // Load forecast 1 jam (terpisah, biar gak ngeblock)
+  try {
+    const res = await fetch("/api/forecast-1hour");
+    const fcData = await res.json();
     if (fcData.success && fcData.forecast) {
       document.getElementById("forecastStatusText").innerText = fcData.forecast.status_next_1h || document.getElementById("forecastStatusText").innerText;
       document.getElementById("forecastRainText").innerText = fcData.forecast.rainfall_next_1h != null ? fcData.forecast.rainfall_next_1h + " mm" : document.getElementById("forecastRainText").innerText;
       document.getElementById("forecastConfidenceText").innerText = fcData.forecast.confidence_next_1h != null ? Math.round(fcData.forecast.confidence_next_1h * 100) + "%" : document.getElementById("forecastConfidenceText").innerText;
     }
   } catch (e) {
-    console.error("ML error:", e);
+    console.error("Forecast error:", e);
   }
+
   loadPerbandingan();
 }
 
