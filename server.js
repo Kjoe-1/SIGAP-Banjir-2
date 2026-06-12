@@ -184,6 +184,36 @@ app.get("/api/forecast-1hour", async (req, res) => {
   }
 });
 
+// Endpoint prediksi multi-horizon (dari ml/prediksi.py)
+const ML_DIR = path.join(__dirname, "ml");
+const FE2ML_MAP = { 1: 1, 2: 1, 3: 2 };
+
+app.get("/api/prediksi", (req, res) => {
+  const feLokasi = parseInt(req.query.lokasi) || 3;
+  const mLokasi = FE2ML_MAP[feLokasi] || 1;
+  const args = ["prediksi.py", "--lokasi", String(mLokasi), "--mode", "demo"];
+  execFile("python", args, { cwd: ML_DIR, timeout: 30000 }, (err, stdout) => {
+    if (err) return res.status(500).json({ success: false, message: "Gagal prediksi" });
+    try { const d = JSON.parse(stdout); d.fe_lokasi = feLokasi; res.json(d); }
+    catch { res.status(500).json({ success: false, message: "Output tidak valid" }); }
+  });
+});
+
+// Endpoint perbandingan prediksi vs aktual historis
+const BANDING_MAP = { 1: 1, 2: 1, 3: 2 };
+
+app.get("/api/perbandingan", (req, res) => {
+  const feLokasi = parseInt(req.query.lokasi) || 3;
+  const mLokasi = BANDING_MAP[feLokasi] || 1;
+  const maxPoints = parseInt(req.query.max) || 50;
+  const args = ["banding.py", "--lokasi", String(mLokasi), "--max-points", String(maxPoints)];
+  execFile("python", args, { cwd: ML_DIR, timeout: 30000 }, (err, stdout) => {
+    if (err) return res.status(500).json({ success: false, message: "Gagal perbandingan" });
+    try { const d = JSON.parse(stdout); d.fe_lokasi = feLokasi; res.json(d); }
+    catch { res.status(500).json({ success: false, message: "Output tidak valid" }); }
+  });
+});
+
 app.listen(3000, () => {
   console.log("Server jalan di http://localhost:3000");
 });
