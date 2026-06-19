@@ -5,5 +5,4 @@ node_modules
 __pycache__
 *.pyc
 ml/__pycache__
-ml/data/*.csv
 .env
