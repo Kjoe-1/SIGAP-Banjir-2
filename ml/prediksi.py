@@ -106,6 +106,9 @@ def main():
     else:
         seri = df.set_index("jam")["distance_avg"]
         x = _fitur_lok2(seri, jam, b["fitur"]); dist_now = float(seri.get(jam, np.nan))
+    if pd.isna(dist_now):
+        print(json.dumps({"success": False, "lokasi": a.lokasi, "message": "Pembacaan terakhir tidak valid (glitch/di luar rentang) — sensor bermasalah."}))
+        return
     st_now = C.status_dari_distance(dist_now, t_was, t_sia)
     out["sekarang"] = {"waktu_data": str(jam), "distance_cm": round(dist_now,1), "tinggi_air_cm": round(ref-dist_now,1), "status": st_now}
     pred = {}; peringatan = None
