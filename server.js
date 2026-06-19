@@ -3,15 +3,23 @@ const express = require("express");
 const path = require("path");
 const mysql = require("mysql2/promise");
 
-
 const app = express();
-const dbConfig = {
-  host: process.env.DB_HOST || "197.66.1.91",
+
+const DB = {
+  host: process.env.DB_HOST || "31.97.66.191",
   user: process.env.DB_USER || "Joko",
   password: process.env.DB_PASS || "Joko12345",
-  database: process.env.DB_NAME || "dbpvwemonbaru",
   port: parseInt(process.env.DB_PORT) || 3306,
 };
+const SENSOR_CFG = {
+  2: { database: "dbpvwemon",   table: "esp2", order: "time"  },
+  3: { database: "dbpvwemonbaru", table: "esp1", order: "waktu" },
+};
+async function sensorDb(lokasi) {
+  const cfg = SENSOR_CFG[lokasi];
+  if (!cfg) return null;
+  return mysql.createConnection({ ...DB, database: cfg.database });
+}
 
 // biar bisa baca JSON
 app.use(express.json());
@@ -24,14 +32,51 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// dummy endpoint biar dashboard nggak loading
-app.get("/sensor/latest", (req, res) => {
-  res.json({
-    suhu: 30,
-    kelembapan: 70,
-    lat: -7.25,
-    lng: 112.75,
-  });
+// ambil data sensor dari database langsung (ganti ngrok)
+app.get("/api/sensor", async (req, res) => {
+  const lokasi = parseInt(req.query.lokasi) || 3;
+  let conn;
+  try {
+    conn = await sensorDb(lokasi);
+    if (!conn) return res.json({ status: "ok", lokasi, data: [] });
+
+    const cfg = SENSOR_CFG[lokasi];
+    const [rows] = await conn.query(
+      `SELECT * FROM \`${cfg.table}\` ORDER BY \`${cfg.order}\` DESC LIMIT 12`
+    );
+
+    const data = rows.reverse().map((r) => {
+      if (lokasi === 2) {
+        return {
+          waktu: r.time,
+          temp: r.temp,
+          humi: r.humi,
+          curah_hujan: r.rain1h,
+          rain24h: r.rain24h,
+          windavg: r.windavg,
+          windmax: r.windmax,
+          windir: r.windir,
+          baro: r.baro,
+        };
+      }
+      return {
+        id: r.id,
+        waktu: r.waktu,
+        distance1: r.distance1,
+        distance2: r.distance2,
+        curah_hujan: r.curah_hujan,
+        curah_hujan_1h: r.curah_hujan_1h,
+        jumlah_tip: r.jumlah_tip,
+      };
+    });
+
+    res.json({ status: "ok", lokasi, data });
+  } catch (err) {
+    console.error("Sensor DB error:", err);
+    res.status(500).json({ status: "error", message: err.message });
+  } finally {
+    if (conn) await conn.end();
+  }
 });
 
 // dummy auth
@@ -69,124 +114,68 @@ app.post("/api/predict", (req, res) => {
   });
 });
 app.get("/api/latest-prediction", async (req, res) => {
+  const lokasi = parseInt(req.query.lokasi) || 3;
+  let conn;
   try {
-    const apiUrl =
-      "https://self-carrousel-culprit.ngrok-free.dev/api/get_ultrasonic.php";
+    conn = await sensorDb(lokasi);
+    if (!conn) return res.json({ success: false, message: "Lokasi tidak punya sensor" });
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const cfg = SENSOR_CFG[lokasi];
+    const [rows] = await conn.query(
+      `SELECT * FROM \`${cfg.table}\` ORDER BY \`${cfg.order}\` DESC LIMIT 1`
+    );
+    if (!rows.length) return res.json({ success: false, message: "Tidak ada data sensor" });
 
-    const apiResponse = await fetch(apiUrl, {
-      headers: { "ngrok-skip-browser-warning": "true" },
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
+    const latest = rows[0];
+    const s = lokasi === 2
+      ? { distance_cm: 0, rainfall_mm: latest.rain1h || 0, tip_count: 0 }
+      : { distance_cm: latest.distance1 || latest.distance2 || 0, rainfall_mm: latest.curah_hujan || latest.curah_hujan_1h || 0, tip_count: latest.jumlah_tip || 0 };
 
-    const apiData = await apiResponse.json();
-
-    if (!apiData.data || apiData.data.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Data sensor dari API tidak ditemukan",
-      });
-    }
-
-    const latest = apiData.data[0];
-
-    const payload = JSON.stringify({
-      distance_cm: latest.distance1 || latest.distance2 || 0,
-      rainfall_mm: latest.curah_hujan || latest.curah_hujan_1h || 0,
-      tip_count: latest.jumlah_tip || 0,
-    });
-
-    execFile("python", ["predict_ml.py", payload], (error, stdout, stderr) => {
-      if (error) {
-        console.error("ML error:", error);
-        console.error("stderr:", stderr);
-        return res.status(500).json({
-          success: false,
-          message: "Gagal menjalankan model ML",
-        });
-      }
-
-      const prediction = JSON.parse(stdout);
-
-      res.json({
-        success: true,
-        sensor: latest,
-        prediction: prediction,
-      });
+    execFile("python", ["predict_ml.py", JSON.stringify(s)], (error, stdout, stderr) => {
+      if (error) return res.status(500).json({ success: false, message: "Gagal ML", stderr });
+      try { res.json({ success: true, sensor: latest, prediction: JSON.parse(stdout) }); }
+      catch { res.status(500).json({ success: false, message: "Output ML tidak valid", raw: stdout }); }
     });
   } catch (error) {
-    console.error("API realtime error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Gagal mengambil data realtime dari API",
-    });
+    console.error("Realtime error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    if (conn) await conn.end();
   }
 });
 
 app.get("/api/forecast-1hour", async (req, res) => {
+  const lokasi = parseInt(req.query.lokasi) || 3;
+  let conn;
   try {
-    const apiUrl =
-      "https://self-carrousel-culprit.ngrok-free.dev/api/get_ultrasonic.php";
+    conn = await sensorDb(lokasi);
+    if (!conn) return res.json({ success: false, message: "Lokasi tidak punya sensor" });
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const cfg = SENSOR_CFG[lokasi];
+    const [rows] = await conn.query(
+      `SELECT * FROM \`${cfg.table}\` ORDER BY \`${cfg.order}\` DESC LIMIT 1`
+    );
+    if (!rows.length) return res.json({ success: false, message: "Tidak ada data sensor" });
 
-    const apiResponse = await fetch(apiUrl, {
-      headers: { "ngrok-skip-browser-warning": "true" },
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-
-    const apiData = await apiResponse.json();
-
-    if (!apiData.data || apiData.data.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Data sensor dari API tidak ditemukan",
-      });
-    }
-
-    const latest = apiData.data[0];
-
+    const latest = rows[0];
     const payload = JSON.stringify({
       distance1: latest.distance1 || 0,
       distance2: latest.distance2 || 0,
-      curah_hujan: latest.curah_hujan || 0,
-      curah_hujan_1h: latest.curah_hujan_1h || 0,
+      curah_hujan: latest.curah_hujan || latest.rain1h || 0,
+      curah_hujan_1h: latest.curah_hujan_1h || latest.rain1h || 0,
       jumlah_tip: latest.jumlah_tip || 0,
     });
 
-    execFile(
-      "python",
-      ["predict_1hour.py", payload],
-      (error, stdout, stderr) => {
-        if (error) {
-          console.error("Forecast ML error:", error);
-          console.error("stderr:", stderr);
-          return res.status(500).json({
-            success: false,
-            message: "Gagal menjalankan model forecast 1 jam",
-          });
-        }
-
-        const forecast = JSON.parse(stdout);
-
-        res.json({
-          success: true,
-          sensor: latest,
-          forecast: forecast,
-        });
-      },
-    );
-  } catch (error) {
-    console.error("API forecast error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Gagal mengambil forecast 1 jam",
+    execFile("python", ["predict_1hour.py", payload], (error, stdout, stderr) => {
+      if (error) return res.status(500).json({ success: false, message: "Gagal forecast", stderr });
+      try { res.json({ success: true, sensor: latest, forecast: JSON.parse(stdout) }); }
+      catch { res.status(500).json({ success: false, message: "Output tidak valid", raw: stdout }); }
     });
+  } catch (error) {
+    console.error("Forecast error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    if (conn) await conn.end();
   }
 });
 

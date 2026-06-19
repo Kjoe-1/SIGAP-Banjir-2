@@ -38,7 +38,7 @@ document.getElementById("lokasi3").onclick = () => setLocation("lokasi3");
 // ================= API =================
 function getAPI() {
   const id = locations[activeLocation].lokasi;
-  return `https://self-carrousel-culprit.ngrok-free.dev/api/get_ultrasonic.php?lokasi=${id}`;
+  return `/api/sensor?lokasi=${id}`;
 }
 
 // ================= MODE SENSOR =================
@@ -168,9 +168,7 @@ function updateSummary(latest) {
 // ================= FETCH DATA =================
 async function fetchData() {
   try {
-    const res = await fetch(getAPI(), {
-      headers: { "ngrok-skip-browser-warning": "true" },
-    });
+    const res = await fetch(getAPI());
     const json = await res.json();
     updateModeUI();
 
@@ -284,7 +282,7 @@ async function loadAIPrediction() {
 
   // Load forecast 1 jam (terpisah, biar gak ngeblock)
   try {
-    const res = await fetch("/api/forecast-1hour");
+    const res = await fetch("/api/forecast-1hour?lokasi=" + feLokasi);
     const fcData = await res.json();
     if (fcData.success && fcData.forecast) {
       document.getElementById("forecastStatusText").innerText = fcData.forecast.status_next_1h || document.getElementById("forecastStatusText").innerText;
