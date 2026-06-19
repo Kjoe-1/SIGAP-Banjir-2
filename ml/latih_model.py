@@ -14,7 +14,7 @@ def latih(X, Yd, fitur, meta, nama):
     print(f"[OK] model/{nama}.pkl")
 
 # LOK1 (rain-based)
-d1 = pd.read_csv(os.path.join(BASE, "data/lok1_demo.csv"))
+d1 = pd.read_csv(os.path.join(BASE, "data/lok1_real.csv"))
 FIT1 = ['rain1h','rain_3h','rain_6h','rain_12h','rain24h','air_now','air_min_now','tren_1h','tren_3h','jam_hari','humi']
 d1c = d1.dropna(subset=FIT1).reset_index(drop=True)
 latih(d1c[FIT1], {h: d1c[f'target_{h}'] for h in HOR}, FIT1,
