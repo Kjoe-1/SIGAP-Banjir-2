@@ -6,7 +6,10 @@ RUN apt-get update && apt-get install -y \
     python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
-RUN ln -sf /usr/bin/python3 /usr/bin/python
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN ln -sf /opt/venv/bin/python /usr/bin/python
 
 WORKDIR /app
 
@@ -15,7 +18,7 @@ RUN npm ci --production
 
 COPY requirements.txt ./
 COPY ml/requirements.txt ./ml/requirements.txt
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
