@@ -18,7 +18,7 @@ d1 = pd.read_csv(os.path.join(BASE, "data/lok1_demo.csv"))
 FIT1 = ['rain1h','rain_3h','rain_6h','rain_12h','rain24h','air_now','air_min_now','tren_1h','tren_3h','jam_hari','humi']
 d1c = d1.dropna(subset=FIT1).reset_index(drop=True)
 latih(d1c[FIT1], {h: d1c[f'target_{h}'] for h in HOR}, FIT1,
-      {"ref": 466, "t_waspada_dist": 360, "t_siaga_dist": 310, "tipe": "forecast_hujan", "nama": "UHT"}, "lok1")
+      {"ref": 466, "t_waspada_dist": 216, "t_siaga_dist": 186, "tipe": "forecast_hujan", "nama": "UHT"}, "lok1")
 
 # LOK2 (autoregressive)
 e2 = pd.read_csv(os.path.join(BASE, "data/lok2_demo.csv")); e2['jam'] = pd.to_datetime(e2['jam'])
