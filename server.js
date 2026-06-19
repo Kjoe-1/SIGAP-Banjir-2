@@ -2,7 +2,7 @@ const { execFile } = require("child_process");
 const express = require("express");
 const path = require("path");
 const mysql = require("mysql2/promise");
-const fetch = require("node-fetch");
+
 
 const app = express();
 const dbConfig = {
