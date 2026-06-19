@@ -198,10 +198,10 @@ app.get("/api/prediksi", (req, res) => {
   const feLokasi = parseInt(req.query.lokasi) || 3;
   const mLokasi = FE2ML_MAP[feLokasi] || 1;
   const args = ["prediksi.py", "--lokasi", String(mLokasi), "--mode", "demo"];
-  execFile("python", args, { cwd: ML_DIR, timeout: 30000 }, (err, stdout) => {
-    if (err) return res.status(500).json({ success: false, message: "Gagal prediksi" });
+  execFile("python", args, { cwd: ML_DIR, timeout: 30000 }, (err, stdout, stderr) => {
+    if (err) return res.status(500).json({ success: false, message: "Gagal prediksi", stderr: stderr });
     try { const d = JSON.parse(stdout); d.fe_lokasi = feLokasi; res.json(d); }
-    catch { res.status(500).json({ success: false, message: "Output tidak valid" }); }
+    catch { res.status(500).json({ success: false, message: "Output tidak valid", stdout }); }
   });
 });
 
@@ -213,10 +213,10 @@ app.get("/api/perbandingan", (req, res) => {
   const mLokasi = BANDING_MAP[feLokasi] || 1;
   const maxPoints = parseInt(req.query.max) || 50;
   const args = ["banding.py", "--lokasi", String(mLokasi), "--max-points", String(maxPoints)];
-  execFile("python", args, { cwd: ML_DIR, timeout: 30000 }, (err, stdout) => {
-    if (err) return res.status(500).json({ success: false, message: "Gagal perbandingan" });
+  execFile("python", args, { cwd: ML_DIR, timeout: 30000 }, (err, stdout, stderr) => {
+    if (err) return res.status(500).json({ success: false, message: "Gagal perbandingan", stderr: stderr });
     try { const d = JSON.parse(stdout); d.fe_lokasi = feLokasi; res.json(d); }
-    catch { res.status(500).json({ success: false, message: "Output tidak valid" }); }
+    catch { res.status(500).json({ success: false, message: "Output tidak valid", stdout }); }
   });
 });
 
