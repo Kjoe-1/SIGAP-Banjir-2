@@ -6,11 +6,11 @@ const fetch = require("node-fetch");
 
 const app = express();
 const dbConfig = {
-  host: "197.66.1.91",
-  user: "Joko",
-  password: "Joko12345",
-  database: "dbpvwemonbaru",
-  port: 3306,
+  host: process.env.DB_HOST || "197.66.1.91",
+  user: process.env.DB_USER || "Joko",
+  password: process.env.DB_PASS || "Joko12345",
+  database: process.env.DB_NAME || "dbpvwemonbaru",
+  port: parseInt(process.env.DB_PORT) || 3306,
 };
 
 // biar bisa baca JSON
@@ -192,7 +192,7 @@ app.get("/api/forecast-1hour", async (req, res) => {
 
 // Endpoint prediksi multi-horizon (dari ml/prediksi.py)
 const ML_DIR = path.join(__dirname, "ml");
-const FE2ML_MAP = { 1: 1, 2: 1, 3: 2 };
+const FE2ML_MAP = { 1: 1, 2: 2, 3: 3 };
 
 app.get("/api/prediksi", (req, res) => {
   const feLokasi = parseInt(req.query.lokasi) || 3;
@@ -206,7 +206,7 @@ app.get("/api/prediksi", (req, res) => {
 });
 
 // Endpoint perbandingan prediksi vs aktual historis
-const BANDING_MAP = { 1: 1, 2: 1, 3: 2 };
+const BANDING_MAP = { 1: 1, 2: 2, 3: 3 };
 
 app.get("/api/perbandingan", (req, res) => {
   const feLokasi = parseInt(req.query.lokasi) || 3;
@@ -220,6 +220,7 @@ app.get("/api/perbandingan", (req, res) => {
   });
 });
 
-app.listen(3000, () => {
-  console.log("Server jalan di http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server jalan di http://localhost:${PORT}`);
 });
