@@ -11,8 +11,8 @@ function updateMap(lat, lng) {
 // ================= LOKASI =================
 let activeLocation = "lokasi3";
 const locations = {
-  lokasi1: { name: "Keputih", lat: -7.284980, lng: 112.802923, lokasi: 1 },
-  lokasi2: { name: "Hangtuah", lat: -7.290753, lng: 112.793255, lokasi: 2 },
+  lokasi1: { name: "Pucanganom", lat: -7.284980, lng: 112.802923, lokasi: 1 },
+  lokasi2: { name: "UHT", lat: -7.290753, lng: 112.793255, lokasi: 2 },
   lokasi3: { name: "Kalikobor", lat: -7.286943, lng: 112.755689, lokasi: 3 },
 };
 
@@ -45,31 +45,41 @@ function getAPI() {
 function isWeatherMode() {
   return locations[activeLocation].lokasi === 2;
 }
+function isRainfallMode() {
+  return locations[activeLocation].lokasi === 1;
+}
 
 function updateModeUI() {
   const w = isWeatherMode();
+  const r = isRainfallMode();
   const g = (id) => document.getElementById(id);
-  const ws = g("weatherSection");
-  const wl = g("waterLevelSection");
-  if (ws) ws.style.display = w ? "block" : "none";
-  if (wl) wl.style.display = w ? "none" : "block";
+  g("weatherSection").style.display = w ? "block" : "none";
+  g("waterLevelSection").style.display = (w || r) ? "none" : "block";
+  g("rainfallSection").style.display = r ? "block" : "none";
   const sb = document.querySelector(".status-bar");
   const sl = document.querySelector(".status-label");
-  if (sb) sb.style.display = w ? "none" : "block";
-  if (sl) sl.style.display = w ? "none" : "block";
+  if (sb) sb.style.display = (w || r) ? "none" : "block";
+  if (sl) sl.style.display = (w || r) ? "none" : "block";
 
   const ml1 = g("miniLabel1");
   const ml2 = g("miniLabel2");
   const ct = g("chartTitle");
   if (w) {
-    if (ml1) ml1.innerText = "Suhu";
-    if (ml2) ml2.innerText = "Kelembaban";
-    if (ct) ct.innerText = "Grafik Suhu (°C)";
+    ml1.innerText = "Suhu";
+    ml2.innerText = "Kelembaban";
+    ct.innerText = "Grafik Suhu (°C)";
+  } else if (r) {
+    ml1.innerText = "Curah Hujan";
+    ml2.innerText = "Jumlah Tip";
+    ct.innerText = "Grafik Curah Hujan (mm)";
   } else {
-    if (ml1) ml1.innerText = "Distance 1";
-    if (ml2) ml2.innerText = "Distance 2";
-    if (ct) ct.innerText = "Grafik Tinggi Muka Air (cm)";
+    ml1.innerText = "Distance 1";
+    ml2.innerText = "Distance 2";
+    ct.innerText = "Grafik Tinggi Muka Air (cm)";
   }
+
+  // update forecast label
+  g("forecastLabel").innerText = r ? "Curah Hujan 1 Jam:" : "Tinggi Air:";
 }
 
 // ================= CHART =================
@@ -109,6 +119,7 @@ function updateSummary(latest) {
   const ind = document.getElementById("indicator");
   const badge = document.getElementById("status-badge");
   const w = isWeatherMode();
+  const r = isRainfallMode();
 
   if (!latest) {
     ind.style.display = "none";
@@ -120,6 +131,10 @@ function updateSummary(latest) {
       const el = document.getElementById("weather-" + id);
       if (el) el.innerText = "-";
     });
+    if (r) {
+      document.getElementById("rainfall-curah").innerText = "-";
+      document.getElementById("rainfall-tip").innerText = "-";
+    }
     badge.innerText = "NO DATA";
     badge.style.backgroundColor = "gray";
     return;
@@ -143,10 +158,22 @@ function updateSummary(latest) {
     document.getElementById("distance1-value").innerText = latest.temp != null ? latest.temp + " °C" : "-";
     document.getElementById("distance2-value").innerText = latest.humi != null ? latest.humi + " %" : "-";
 
-    const r = parseFloat(latest.curah_hujan) || 0;
-    const st = r >= 3 ? "AWAS" : r >= 1 ? "SIAGA" : "AMAN";
+    const rv = parseFloat(latest.curah_hujan) || 0;
+    const st = rv >= 3 ? "AWAS" : rv >= 1 ? "SIAGA" : "AMAN";
     badge.innerText = st;
     ind.style.display = "none";
+    badge.style.backgroundColor = st === "AMAN" ? "green" : st === "SIAGA" ? "orange" : "red";
+  } else if (r) {
+    ind.style.display = "none";
+    document.getElementById("current-distance").innerHTML = (latest.curah_hujan != null ? latest.curah_hujan : "-") + ' <small>mm</small>';
+    document.getElementById("distance1-value").innerText = latest.curah_hujan != null ? latest.curah_hujan + " mm" : "-";
+    document.getElementById("distance2-value").innerText = latest.jumlah_tip != null ? latest.jumlah_tip : "-";
+    document.getElementById("rainfall-curah").innerText = latest.curah_hujan_1h != null ? latest.curah_hujan_1h + " mm" : "-";
+    document.getElementById("rainfall-tip").innerText = latest.jumlah_tip != null ? latest.jumlah_tip : "-";
+
+    const rv = parseFloat(latest.curah_hujan) || 0;
+    const st = rv >= 3 ? "AWAS" : rv >= 1 ? "SIAGA" : "AMAN";
+    badge.innerText = st;
     badge.style.backgroundColor = st === "AMAN" ? "green" : st === "SIAGA" ? "orange" : "red";
   } else {
     ind.style.display = "block";
@@ -179,12 +206,17 @@ async function fetchData() {
 
     const rows = json.data.slice().reverse();
     const w = isWeatherMode();
-    const labels = rows.map((r) => formatTimeLabel(r.waktu));
-    const values = rows.map((r) => (w ? parseFloat(r.temp) : parseFloat(r.distance1)));
+    const r = isRainfallMode();
+    const labels = rows.map((rv) => formatTimeLabel(rv.waktu));
+    const values = rows.map((rv) => {
+      if (w) return parseFloat(rv.temp);
+      if (r) return parseFloat(rv.curah_hujan);
+      return parseFloat(rv.distance1);
+    });
 
     rainChart.data.labels = labels;
     rainChart.data.datasets[0].data = values;
-    rainChart.data.datasets[0].label = w ? "Suhu (°C)" : "Tinggi Muka Air (cm)";
+    rainChart.data.datasets[0].label = w ? "Suhu (°C)" : r ? "Curah Hujan (mm)" : "Tinggi Muka Air (cm)";
     rainChart.update();
 
     const latest = rows[rows.length - 1];

@@ -410,6 +410,7 @@ body{
 
 /* ===== WEATHER SECTION ===== */
 .weather-section { margin: 14px 0; }
+.rainfall-section { margin: 14px 0; }
 .weather-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .weather-item { background: #f5f5f5; padding: 10px; border-radius: 10px; text-align: center; font-size: 13px; }
 .weather-item p { font-size: 11px; color: #666; margin-bottom: 4px; }
