@@ -6,10 +6,10 @@ const mysql = require("mysql2/promise");
 const app = express();
 
 const DB = {
-  host: process.env.DB_HOST || "31.97.66.191",
-  user: process.env.DB_USER || "Joko",
-  password: process.env.DB_PASS || "Joko12345",
-  port: parseInt(process.env.DB_PORT) || 3306,
+  host: process.env.SENSOR_DB_HOST || "31.97.66.191",
+  user: process.env.SENSOR_DB_USER || "Joko",
+  password: process.env.SENSOR_DB_PASS || "Joko12345",
+  port: parseInt(process.env.SENSOR_DB_PORT) || 3306,
 };
 const SENSOR_CFG = {
   2: { database: "dbpvwemon",   table: "esp2", order: "time"  },
