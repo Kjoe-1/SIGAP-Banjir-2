@@ -12,6 +12,7 @@ const DB = {
   port: parseInt(process.env.SENSOR_DB_PORT) || 3306,
 };
 const SENSOR_CFG = {
+  1: { database: "dbpvwemonbaru2", table: "esp1", order: "waktu" },
   2: { database: "dbpvwemon",   table: "esp2", order: "time"  },
   3: { database: "dbpvwemonbaru", table: "esp1", order: "waktu" },
 };
