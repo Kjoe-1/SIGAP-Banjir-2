@@ -120,7 +120,7 @@ def main():
             dist, st, conf = _conf(b["models"][h], x, t_was, t_sia)
             pred[str(h)] = {"jam_ke_depan": h, "tinggi_air_cm": round(ref-dist,1), "status": st, "confidence": conf, "keandalan": _keandalan(cfg["tipe"], h)}
             if peringatan is None and st in ("WASPADA","SIAGA"):
-                peringatan = {"ada": True, "status": st, "dalam_jam": h, "pesan": f"Diprediksi {st} dalam {h} jam (keyakinan {int(conf*100)}%)"}
+                peringatan = {"ada": True, "status": st, "dalam_jam": h, "pesan": f"Diprediksi {st} dalam {h} jam ({int(conf*100)}% pohon model sepakat)"}
     out["prediksi"] = pred
     out["peringatan"] = peringatan or {"ada": False, "status": "AMAN", "dalam_jam": None, "pesan": "Aman"}
     out["catatan"] = ("Forecasting andal (badan air alami, hujan)." if cfg["tipe"]=="forecast_hujan" else "Rumah pompa: forecasting INDIKATIF.")
