@@ -11,7 +11,7 @@ function updateMap(lat, lng) {
 // ================= LOKASI =================
 let activeLocation = "lokasi3";
 const locations = {
-  lokasi1: { name: "Pucanganom", lat: -7.284980, lng: 112.802923, lokasi: 1 },
+  lokasi1: { name: "Pucanganom", lat: -7.28498, lng: 112.802923, lokasi: 1 },
   lokasi2: { name: "UHT", lat: -7.290753, lng: 112.793255, lokasi: 2 },
   lokasi3: { name: "Kalikobor", lat: -7.286943, lng: 112.755689, lokasi: 3 },
 };
@@ -23,7 +23,9 @@ function setLocation(key) {
   document.getElementById("active-location").innerText = loc.name;
   document.getElementById("lokasi-text").innerText = loc.name;
 
-  document.querySelectorAll(".location-btn").forEach((b) => b.classList.remove("active"));
+  document
+    .querySelectorAll(".location-btn")
+    .forEach((b) => b.classList.remove("active"));
   document.getElementById(key).classList.add("active");
 
   updateModeUI();
@@ -54,12 +56,12 @@ function updateModeUI() {
   const r = isRainfallMode();
   const g = (id) => document.getElementById(id);
   g("weatherSection").style.display = w ? "block" : "none";
-  g("waterLevelSection").style.display = (w || r) ? "none" : "block";
+  g("waterLevelSection").style.display = w || r ? "none" : "block";
   g("rainfallSection").style.display = r ? "block" : "none";
   const sb = document.querySelector(".status-bar");
   const sl = document.querySelector(".status-label");
-  if (sb) sb.style.display = (w || r) ? "none" : "block";
-  if (sl) sl.style.display = (w || r) ? "none" : "block";
+  if (sb) sb.style.display = w || r ? "none" : "block";
+  if (sl) sl.style.display = w || r ? "none" : "block";
 
   const ml1 = g("miniLabel1");
   const ml2 = g("miniLabel2");
@@ -88,21 +90,30 @@ const rainChart = new Chart(ctx, {
   type: "line",
   data: {
     labels: [],
-    datasets: [{
-      label: "Tinggi Muka Air (cm)",
-      data: [],
-      borderColor: "#00bcd4",
-      backgroundColor: "transparent",
-      tension: 0.3,
-      pointRadius: 2,
-    }],
+    datasets: [
+      {
+        label: "Tinggi Muka Air (cm)",
+        data: [],
+        borderColor: "#00bcd4",
+        backgroundColor: "transparent",
+        tension: 0.3,
+        pointRadius: 2,
+      },
+    ],
   },
   options: {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
-      x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6, padding: 15 } },
+      x: {
+        ticks: {
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 6,
+          padding: 15,
+        },
+      },
       y: { beginAtZero: true, grace: "10%" },
     },
   },
@@ -127,10 +138,20 @@ function updateSummary(latest) {
     document.getElementById("current-distance").innerText = "-";
     document.getElementById("distance1-value").innerText = "-";
     document.getElementById("distance2-value").innerText = "-";
-    if (w) ["temp","humi","windavg","windmax","windir","baro","rain1h","rain24h"].forEach(id => {
-      const el = document.getElementById("weather-" + id);
-      if (el) el.innerText = "-";
-    });
+    if (w)
+      [
+        "temp",
+        "humi",
+        "windavg",
+        "windmax",
+        "windir",
+        "baro",
+        "rain1h",
+        "rain24h",
+      ].forEach((id) => {
+        const el = document.getElementById("weather-" + id);
+        if (el) el.innerText = "-";
+      });
     if (r) {
       document.getElementById("rainfall-curah").innerText = "-";
       document.getElementById("rainfall-tip").innerText = "-";
@@ -144,7 +165,10 @@ function updateSummary(latest) {
   badge.style.display = "inline-block";
 
   if (w) {
-    const s = (id, v, u) => { const e = document.getElementById("weather-" + id); if (e) e.innerText = v != null ? v + " " + u : "-"; };
+    const s = (id, v, u) => {
+      const e = document.getElementById("weather-" + id);
+      if (e) e.innerText = v != null ? v + " " + u : "-";
+    };
     s("temp", latest.temp, "°C");
     s("humi", latest.humi, "%");
     s("windavg", latest.windavg, "m/s");
@@ -154,30 +178,43 @@ function updateSummary(latest) {
     s("rain1h", latest.curah_hujan, "mm");
     s("rain24h", latest.rain24h, "mm");
 
-    document.getElementById("current-distance").innerHTML = (latest.curah_hujan != null ? latest.curah_hujan : "-") + ' <small>mm</small>';
-    document.getElementById("distance1-value").innerText = latest.temp != null ? latest.temp + " °C" : "-";
-    document.getElementById("distance2-value").innerText = latest.humi != null ? latest.humi + " %" : "-";
+    document.getElementById("current-distance").innerHTML =
+      (latest.curah_hujan != null ? latest.curah_hujan : "-") +
+      " <small>mm</small>";
+    document.getElementById("distance1-value").innerText =
+      latest.temp != null ? latest.temp + " °C" : "-";
+    document.getElementById("distance2-value").innerText =
+      latest.humi != null ? latest.humi + " %" : "-";
 
     const rv = parseFloat(latest.curah_hujan) || 0;
     const st = rv >= 3 ? "AWAS" : rv >= 1 ? "SIAGA" : "AMAN";
     badge.innerText = st;
     ind.style.display = "none";
-    badge.style.backgroundColor = st === "AMAN" ? "green" : st === "SIAGA" ? "orange" : "red";
+    badge.style.backgroundColor =
+      st === "AMAN" ? "green" : st === "SIAGA" ? "orange" : "red";
   } else if (r) {
     ind.style.display = "none";
-    document.getElementById("current-distance").innerHTML = (latest.curah_hujan != null ? latest.curah_hujan : "-") + ' <small>mm</small>';
-    document.getElementById("distance1-value").innerText = latest.curah_hujan != null ? latest.curah_hujan + " mm" : "-";
-    document.getElementById("distance2-value").innerText = latest.jumlah_tip != null ? latest.jumlah_tip : "-";
-    document.getElementById("rainfall-curah").innerText = latest.curah_hujan_1h != null ? latest.curah_hujan_1h + " mm" : "-";
-    document.getElementById("rainfall-tip").innerText = latest.jumlah_tip != null ? latest.jumlah_tip : "-";
+    document.getElementById("current-distance").innerHTML =
+      (latest.curah_hujan != null ? latest.curah_hujan : "-") +
+      " <small>mm</small>";
+    document.getElementById("distance1-value").innerText =
+      latest.curah_hujan != null ? latest.curah_hujan + " mm" : "-";
+    document.getElementById("distance2-value").innerText =
+      latest.jumlah_tip != null ? latest.jumlah_tip : "-";
+    document.getElementById("rainfall-curah").innerText =
+      latest.curah_hujan_1h != null ? latest.curah_hujan_1h + " mm" : "-";
+    document.getElementById("rainfall-tip").innerText =
+      latest.jumlah_tip != null ? latest.jumlah_tip : "-";
 
     const rv = parseFloat(latest.curah_hujan) || 0;
     const st = rv >= 3 ? "AWAS" : rv >= 1 ? "SIAGA" : "AMAN";
     badge.innerText = st;
-    badge.style.backgroundColor = st === "AMAN" ? "green" : st === "SIAGA" ? "orange" : "red";
+    badge.style.backgroundColor =
+      st === "AMAN" ? "green" : st === "SIAGA" ? "orange" : "red";
   } else {
     ind.style.display = "block";
-    document.getElementById("current-distance").innerHTML = `${latest.distance1} <small>cm</small>`;
+    document.getElementById("current-distance").innerHTML =
+      `${latest.distance1} <small>cm</small>`;
     document.getElementById("distance1-value").innerText = latest.distance1;
     document.getElementById("distance2-value").innerText = latest.distance2;
 
@@ -187,7 +224,8 @@ function updateSummary(latest) {
       st = v >= 200 ? "AMAN" : v >= 100 ? "WASPADA" : "SIAGA";
     }
     badge.innerText = st;
-    badge.style.backgroundColor = st === "AMAN" ? "green" : st === "WASPADA" ? "orange" : "red";
+    badge.style.backgroundColor =
+      st === "AMAN" ? "green" : st === "WASPADA" ? "orange" : "red";
     ind.style.left = st === "AMAN" ? "20%" : st === "WASPADA" ? "50%" : "80%";
   }
 }
@@ -216,7 +254,11 @@ async function fetchData() {
 
     rainChart.data.labels = labels;
     rainChart.data.datasets[0].data = values;
-    rainChart.data.datasets[0].label = w ? "Suhu (°C)" : r ? "Curah Hujan (mm)" : "Tinggi Muka Air (cm)";
+    rainChart.data.datasets[0].label = w
+      ? "Suhu (°C)"
+      : r
+        ? "Curah Hujan (mm)"
+        : "Tinggi Muka Air (cm)";
     rainChart.update();
 
     const latest = rows[rows.length - 1];
@@ -272,7 +314,10 @@ async function loadAIPrediction() {
     const p1 = data.prediksi ? data.prediksi["1"] : null;
 
     document.getElementById("statusText").innerText = skrg.status;
-    document.getElementById("confidenceText").innerText = skrg.confidence != null ? Math.round(skrg.confidence * 100) + "%" : "-";
+    document.getElementById("confidenceText").innerText =
+      skrg.confidence != null
+        ? Math.round(skrg.confidence * 100) + "% pohon setuju"
+        : "-";
 
     if (skrg.status === "SIAGA") {
       document.getElementById("statusIcon").innerText = "!";
@@ -287,15 +332,23 @@ async function loadAIPrediction() {
 
     if (p1 && p1.status !== "tidak_tersedia") {
       document.getElementById("forecastStatusText").innerText = p1.status;
-      document.getElementById("forecastRainText").innerText = p1.tinggi_air_cm != null ? p1.tinggi_air_cm + " cm" : "-";
-      document.getElementById("forecastConfidenceText").innerText = p1.confidence != null ? Math.round(p1.confidence * 100) + "%" : "-";
+      document.getElementById("forecastRainText").innerText =
+        p1.tinggi_air_cm != null ? p1.tinggi_air_cm + " cm" : "-";
+      document.getElementById("forecastConfidenceText").innerText =
+        p1.confidence != null
+          ? Math.round(p1.confidence * 100) + "% pohon setuju"
+          : "-";
     }
 
     const alertEl = document.getElementById("peringatanAlert");
     if (warn && warn.ada) {
       alertEl.style.display = "block";
-      alertEl.className = "peringatan-alert peringatan-" + warn.status.toLowerCase();
-      alertEl.innerHTML = '<span class="alert-icon">⚠️</span> ' + warn.pesan + ' <span class="alert-close" onclick="this.parentElement.style.display=\'none\'">✕</span>';
+      alertEl.className =
+        "peringatan-alert peringatan-" + warn.status.toLowerCase();
+      alertEl.innerHTML =
+        '<span class="alert-icon">⚠️</span> ' +
+        warn.pesan +
+        ' <span class="alert-close" onclick="this.parentElement.style.display=\'none\'">✕</span>';
     } else {
       alertEl.style.display = "none";
     }
@@ -317,9 +370,17 @@ async function loadAIPrediction() {
     const res = await fetch("/api/forecast-1hour?lokasi=" + feLokasi);
     const fcData = await res.json();
     if (fcData.success && fcData.forecast) {
-      document.getElementById("forecastStatusText").innerText = fcData.forecast.status_next_1h || document.getElementById("forecastStatusText").innerText;
-      document.getElementById("forecastRainText").innerText = fcData.forecast.rainfall_next_1h != null ? fcData.forecast.rainfall_next_1h + " mm" : document.getElementById("forecastRainText").innerText;
-      document.getElementById("forecastConfidenceText").innerText = fcData.forecast.confidence_next_1h != null ? Math.round(fcData.forecast.confidence_next_1h * 100) + "%" : document.getElementById("forecastConfidenceText").innerText;
+      document.getElementById("forecastStatusText").innerText =
+        fcData.forecast.status_next_1h ||
+        document.getElementById("forecastStatusText").innerText;
+      document.getElementById("forecastRainText").innerText =
+        fcData.forecast.rainfall_next_1h != null
+          ? fcData.forecast.rainfall_next_1h + " mm"
+          : document.getElementById("forecastRainText").innerText;
+      document.getElementById("forecastConfidenceText").innerText =
+        fcData.forecast.confidence_next_1h != null
+          ? Math.round(fcData.forecast.confidence_next_1h * 100) + "%"
+          : document.getElementById("forecastConfidenceText").innerText;
     }
   } catch (e) {
     console.error("Forecast error:", e);
@@ -330,15 +391,26 @@ async function loadAIPrediction() {
 function updateClock() {
   const now = new Date();
   document.getElementById("clock").innerText =
-    now.toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" }) +
+    now.toLocaleDateString("id-ID", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }) +
     " | " +
-    now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    now.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
 }
 
 // Horizon tabs
 document.querySelectorAll(".horizon-btn").forEach((btn) => {
   btn.addEventListener("click", function () {
-    document.querySelectorAll(".horizon-btn").forEach((b) => b.classList.remove("active"));
+    document
+      .querySelectorAll(".horizon-btn")
+      .forEach((b) => b.classList.remove("active"));
     this.classList.add("active");
     horizonAktif = this.dataset.h;
     loadPerbandingan();
