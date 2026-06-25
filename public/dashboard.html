@@ -1,150 +1,245 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIGAP — Dashboard</title>
-    <link rel="stylesheet" href="css/dashboard.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIGAP - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Georgia:ital,wght@0,400;0,700;1,400;1,700&family=Work+Sans:ital,wght@0,100..900;1,100..900&family=Material+Symbols+Outlined:wght,FILL,GRAD,opsz@100..700,0..1,-50..200,20..48&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="css/dashboard.css">
+<script>
+tailwind.config = {
+    darkMode: "class",
+    theme: {
+        extend: {
+            colors: {
+                "secondary-fixed": "#ffd9de", "on-secondary-container": "#fffbff", "tertiary-container": "#002118",
+                "on-primary-fixed": "#1c1b1b", "surface-container-highest": "#ebe3c3", "primary-container": "#1c1b1b",
+                "secondary-fixed-dim": "#ffb2bf", "outline-variant": "#c4c7c7", "on-tertiary": "#ffffff",
+                "on-tertiary-fixed-variant": "#00513f", "error": "#ba1a1a", "tertiary-fixed-dim": "#00e0b3",
+                "on-primary": "#ffffff", "on-secondary": "#ffffff", "error-container": "#ffdad6", "tertiary": "#000000",
+                "on-primary-fixed-variant": "#474646", "surface": "#fff9ea", "on-secondary-fixed-variant": "#90003b",
+                "surface-tint": "#5f5e5e", "background": "#fff9ea", "outline": "#747878", "primary": "#000000",
+                "secondary-container": "#e50062", "on-surface-variant": "#444748", "inverse-surface": "#35311b",
+                "surface-container-lowest": "#ffffff", "on-error": "#ffffff", "on-error-container": "#93000a",
+                "on-primary-container": "#858383", "surface-variant": "#ebe3c3", "surface-container-low": "#fcf4d3",
+                "inverse-on-surface": "#f9f1d0", "inverse-primary": "#c8c6c5", "surface-bright": "#fff9ea",
+                "tertiary-fixed": "#24ffcd", "surface-container-high": "#f1e8c8", "primary-fixed": "#e5e2e1",
+                "surface-container": "#f6eecd", "primary-fixed-dim": "#c8c6c5", "on-surface": "#1f1c08",
+                "on-secondary-fixed": "#3f0016", "surface-dim": "#e2daba", "on-tertiary-fixed": "#002118",
+                "on-tertiary-container": "#009576", "on-background": "#1f1c08", "secondary": "#b7004d"
+            },
+            borderRadius: { DEFAULT: "0px", lg: "0px", xl: "0px", full: "0px" },
+            fontFamily: { "body-base": ["Georgia"], "label-caps": ["Courier Prime"], "headline-md": ["Work Sans"], "display-lg": ["Georgia"], "stat-lg": ["Courier Prime"], "ui-action": ["Work Sans"] },
+            fontSize: {
+                "body-base": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                "label-caps": ["12px", { lineHeight: "16px", letterSpacing: "0.08em", fontWeight: "700" }],
+                "headline-md": ["22px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "800" }],
+                "display-lg": ["40px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                "stat-lg": ["32px", { lineHeight: "36px", letterSpacing: "-0.03em", fontWeight: "700" }],
+                "ui-action": ["14px", { lineHeight: "16px", fontWeight: "800" }]
+            }
+        }
+    }
+};
+</script>
 </head>
-<body>
+<body class="bg-surface grid-bg text-on-surface min-h-screen flex flex-col md:flex-row antialiased selection:bg-secondary-fixed selection:text-on-surface">
 
-<div id="notif-container"></div>
+<div id="notif-container" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 max-w-[360px] pointer-events-none"></div>
 
-<div class="dashboard-layout">
-
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h1>SIGAP</h1>
-            <p style="font-size:10px;color:#787774;margin-top:3px">Flood Monitor</p>
-        </div>
-        <div class="location-section">
-            <h3>Lokasi</h3>
-            <button class="location-btn" id="lokasi1">Pucanganom <span style="float:right;opacity:0.4">→</span></button>
-            <button class="location-btn" id="lokasi2">UHT <span style="float:right;opacity:0.4">→</span></button>
-            <button class="location-btn active" id="lokasi3">Kalikobor <span style="float:right;opacity:0.4">→</span></button>
-        </div>
-        <div class="sidebar-info">
-            <h4>Sistem</h4>
-            <span class="online-dot"></span><span>Online</span>
-            <hr>
-            <h4>Aktif</h4>
-            <p id="active-location">Kalikobor</p>
-            <p style="font-size:10px;color:#787774;margin-top:6px;line-height:1.4">DB: <span id="dbInfo">dbpvwemonbaru</span></p>
-        </div>
-    </aside>
-
-    <main class="main-content">
-
-        <div class="navbar">
-            <div>
-                <h2>Dashboard Monitoring</h2>
-                <p class="lokasi">Lokasi: <span id="lokasi-text">Kalikobor</span> · <span id="dbInfoNav">dbpvwemonbaru</span></p>
-            </div>
-            <div class="nav-btn">
-                <span id="clock" class="clock"></span>
-                <a href="/prediksi.html" style="text-decoration:none"><button>Analitik</button></a>
-                <button id="loginBtn">Login</button>
-                <button id="uploadBtn">Unggah</button>
-                <button id="logoutBtn">Logout</button>
-            </div>
-        </div>
-
-        <!-- Stat Cards -->
-        <div class="stats-row" id="statsRow">
-            <div class="stat-card"><div class="stat-label">Status</div><div class="stat-value" id="statStatus">-</div></div>
-            <div class="stat-card"><div class="stat-label">Tinggi Air</div><div class="stat-value" id="statTinggi">-</div></div>
-            <div class="stat-card"><div class="stat-label">Waktu</div><div class="stat-value" style="font-size:14px" id="statWaktu">-</div></div>
-        </div>
-
-        <!-- Top Grid: Status Card + Map -->
-        <div class="top-grid">
-            <div class="card status-card">
-                <h3>Status AI/ML: <span id="statusText">AMAN</span></h3>
-                <div class="icon" id="statusIcon">✔</div>
-                <p id="statusDesc">Kondisi Normal</p>
-                <p style="font-size:12px;color:#787774">Confidence: <b id="confidenceText" style="color:#111">-</b></p>
-                <div id="peringatanAlert" style="display:none;margin:8px 0;padding:8px 10px;border-radius:6px;font-size:12px;font-weight:500"></div>
-                <hr>
-                <h3>Prediksi 1 Jam: <span id="forecastStatusText">-</span></h3>
-                <p style="font-size:12px;color:#787774"><span id="forecastLabel">Tinggi Air:</span> <b id="forecastRainText" style="color:#111">-</b></p>
-                <p style="font-size:12px;color:#787774">Confidence: <b id="forecastConfidenceText" style="color:#111">-</b></p>
-                <p style="font-size:12px;color:#787774">Keandalan: <b id="prediksiKeandalan" style="color:#111">-</b></p>
-            </div>
-            <div class="card map-card">
-                <h3>Peta</h3>
-                <div id="map"></div>
-            </div>
-        </div>
-
-        <!-- Summary -->
-        <div class="card summary-card">
-            <div class="summary-header">
-                <div>
-                    <p style="font-size:10px;color:#787774;text-transform:uppercase;letter-spacing:0.08em;font-weight:700">Data Terakhir</p>
-                    <h2 id="current-time">-</h2>
-                </div>
-                <span id="status-badge" class="badge">-</span>
-            </div>
-            <hr>
-
-            <div class="water-level" id="waterLevelSection">
-                <p id="waterLevelLabel">Tinggi Muka Air</p>
-                <h1 id="current-distance">-</h1>
-            </div>
-
-            <div class="rainfall-section" id="rainfallSection" style="display:none">
-                <div class="weather-grid">
-                    <div class="weather-item"><p>Curah Hujan (1h)</p><b id="rainfall-curah">-</b></div>
-                    <div class="weather-item"><p>Jumlah Tip</p><b id="rainfall-tip">-</b></div>
-                </div>
-            </div>
-
-            <div class="weather-section" id="weatherSection" style="display:none">
-                <div class="weather-grid">
-                    <div class="weather-item"><p>Suhu</p><b id="weather-temp">-</b></div>
-                    <div class="weather-item"><p>Kelembaban</p><b id="weather-humi">-</b></div>
-                    <div class="weather-item"><p>Angin Rata2</p><b id="weather-windavg">-</b></div>
-                    <div class="weather-item"><p>Angin Maks</p><b id="weather-windmax">-</b></div>
-                    <div class="weather-item"><p>Arah Angin</p><b id="weather-windir">-</b></div>
-                    <div class="weather-item"><p>Tekanan</p><b id="weather-baro">-</b></div>
-                    <div class="weather-item"><p>Curah Hujan 1h</p><b id="weather-rain1h">-</b></div>
-                    <div class="weather-item"><p>Curah Hujan 24h</p><b id="weather-rain24h">-</b></div>
-                </div>
-            </div>
-
-            <div class="status-bar"><div class="indicator" id="indicator"></div></div>
-            <div class="status-label"><span>AMAN</span><span>WASPADA</span><span>SIAGA</span></div>
-            <hr>
-
-            <div class="row">
-                <div class="mini-card"><p id="miniLabel1">Distance 1</p><b id="distance1-value">-</b></div>
-                <div class="mini-card"><p id="miniLabel2">Distance 2</p><b id="distance2-value">-</b></div>
-            </div>
-
-            <div class="gauge-row" id="gaugeRow"></div>
-        </div>
-
-        <!-- Charts -->
-        <div class="chart-grid">
-            <div class="card grafik">
-                <h3 id="chartTitle">Tinggi Muka Air</h3>
-                <canvas id="rainChart"></canvas>
-            </div>
-            <div class="card grafik link-card">
-                <div>
-                    <p style="font-size:22px;margin-bottom:6px">📊</p>
-                    <p>Analitik prediksi &amp; perbandingan</p>
-                    <a href="/prediksi.html">Buka Halaman Analitik →</a>
-                </div>
-            </div>
-        </div>
-
-    </main>
+<!-- Mobile Top Bar -->
+<div class="md:hidden flex justify-between items-center px-4 py-2 w-full sticky top-0 z-50 bg-surface border-b-2 border-primary brutal-shadow">
+    <div class="font-headline-md uppercase tracking-tighter text-primary">SECTOR_MONITOR</div>
+    <button class="p-2 border-2 border-primary active:translate-x-[2px] active:translate-y-[2px] brutal-shadow active:shadow-none bg-surface-container">
+        <span class="material-symbols-outlined text-primary">menu</span>
+    </button>
 </div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- Sidebar -->
+<nav class="hidden md:flex flex-col h-screen py-6 gap-4 bg-surface-container border-r-2 border-primary sticky top-0 w-56 shrink-0 z-40">
+    <div class="px-4 mb-6">
+        <div class="font-headline-md text-primary text-shadow-riso uppercase tracking-tighter">SECTOR_MONITOR</div>
+        <div class="font-label-caps text-on-surface-variant mt-1">SIGAP_BANJIR</div>
+    </div>
+    <div class="flex-1 overflow-y-auto px-2 flex flex-col gap-2">
+        <div class="font-label-caps text-outline px-2 mb-1">ZONES</div>
+        <a id="lokasi1" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:scale-95 transition-transform cursor-pointer" data-lokasi="1">
+            <span class="material-symbols-outlined">location_on</span>
+            <span class="font-label-caps uppercase tracking-widest">PUCANGANOM</span>
+        </a>
+        <a id="lokasi2" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:scale-95 transition-transform cursor-pointer" data-lokasi="2">
+            <span class="material-symbols-outlined">location_on</span>
+            <span class="font-label-caps uppercase tracking-widest">UHT</span>
+        </a>
+        <a id="lokasi3" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-bold brutal-shadow active:scale-95 transition-transform cursor-pointer" data-lokasi="3">
+            <span class="material-symbols-outlined">analytics</span>
+            <span class="font-label-caps uppercase tracking-widest">KALIKOBOR</span>
+        </a>
+    </div>
+    <div class="mt-auto px-2 flex flex-col gap-1 pb-4">
+        <div class="h-px w-full bg-primary mb-1"></div>
+        <div class="flex items-center gap-2 px-2 py-1 text-primary">
+            <span class="material-symbols-outlined text-[18px]">info</span>
+            <span class="font-label-caps">SISTEM</span>
+            <span class="inline-block w-2 h-2 rounded-full bg-tertiary-fixed animate-pulse border border-primary ml-auto"></span>
+        </div>
+        <div class="font-label-caps text-on-surface-variant px-2" id="activeLocation">Kalikobor</div>
+    </div>
+</nav>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col min-h-screen w-full max-w-full">
+
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-end px-4 md:px-8 py-4 border-b-2 border-primary bg-surface/90 backdrop-blur-sm sticky top-0 md:top-auto z-30">
+        <div>
+            <h1 class="font-display-lg text-primary uppercase tracking-tighter text-shadow-riso mb-2">Dashboard Monitoring</h1>
+            <div class="flex items-center gap-2">
+                <span class="inline-block w-3 h-3 rounded-full bg-tertiary-fixed animate-pulse border border-primary"></span>
+                <span class="font-label-caps text-on-surface-variant">LOKASI: <span id="lokasiText">Kalikobor</span></span>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 mt-4 md:mt-0 flex-wrap">
+            <span class="font-label-caps text-on-surface-variant" id="clock"></span>
+            <a href="/prediksi.html" class="flex items-center gap-2 px-4 py-2 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all -rotate-1">
+                <span class="material-symbols-outlined">ssid_chart</span>
+                <span class="font-ui-action uppercase tracking-widest">Analitik</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="p-4 md:p-8 flex flex-col gap-4">
+
+        <!-- Stats Row -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow p-3 flex flex-col items-center text-center">
+                <div class="font-label-caps text-on-surface-variant">STATUS</div>
+                <div class="font-stat-lg text-primary text-shadow-riso-sm mt-1" id="statStatus">-</div>
+            </div>
+            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow -rotate-0.5 p-3 flex flex-col items-center text-center">
+                <div class="font-label-caps text-on-surface-variant">TINGGI AIR</div>
+                <div class="font-stat-lg text-primary mt-1"><span id="statTinggi">-</span> <span class="text-headline-md text-on-surface-variant">cm</span></div>
+            </div>
+            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow rotate-0.5 p-3 flex flex-col items-center text-center">
+                <div class="font-label-caps text-on-surface-variant">DISTANCE 1</div>
+                <div class="font-stat-lg text-primary mt-1" id="statDist1">-</div>
+            </div>
+            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow p-3 flex flex-col items-center text-center">
+                <div class="font-label-caps text-on-surface-variant">DISTANCE 2</div>
+                <div class="font-stat-lg text-primary mt-1" id="statDist2">-</div>
+            </div>
+        </div>
+
+        <!-- Top Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Status Card -->
+            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-lg -rotate-1 p-0 flex flex-col relative overflow-hidden">
+                <div class="bg-primary text-on-primary font-label-caps text-label-caps p-2 px-4 flex justify-between items-center">
+                    <span>ID: STATUS_AI</span>
+                    <span class="material-symbols-outlined text-[16px]">monitoring</span>
+                </div>
+                <div class="p-4 flex flex-col items-center text-center">
+                    <div class="font-stat-lg text-secondary-container text-shadow-riso animate-pulse" id="statusText">AMAN</div>
+                    <div class="font-body-base text-on-surface-variant mt-1" id="statusDesc">Kondisi Normal</div>
+                    <div class="font-label-caps text-on-surface-variant mt-2">Confidence: <span class="font-body-bold text-primary" id="confidenceText">-</span></div>
+                    <div id="peringatanAlert" style="display:none" class="w-full mt-2 p-2 border-2 border-secondary-container bg-secondary-fixed font-label-caps text-sm"></div>
+                </div>
+                <div class="border-t-2 border-primary bg-surface-container-highest p-2 px-4 flex justify-between font-label-caps text-label-caps">
+                    <span>PREDIKSI 1J: <span id="forecastStatusText">-</span></span>
+                    <span>TMA: <span id="forecastRainText">-</span></span>
+                    <span>CONF: <span id="forecastConfidenceText">-</span></span>
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-lg rotate-0.5 p-0 flex flex-col">
+                <div class="bg-primary text-on-primary font-label-caps text-label-caps p-2 px-4 flex justify-between items-center">
+                    <span>ID: PETA_LOKASI</span>
+                    <span class="material-symbols-outlined text-[16px]">map</span>
+                </div>
+                <div id="map" class="h-64"></div>
+            </div>
+        </div>
+
+        <!-- Summary + Gauges -->
+        <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-xl p-0 flex flex-col">
+            <div class="border-b-2 border-primary bg-primary text-on-primary p-2 px-4 flex justify-between items-center">
+                <span class="font-label-caps uppercase tracking-widest">SENSOR: <span id="summaryLokasi">Kalikobor</span></span>
+                <span id="status-badge" class="font-label-caps text-label-caps bg-surface px-2 py-1 text-primary">NO DATA</span>
+            </div>
+            <div class="p-4">
+                <div class="text-center mb-4">
+                    <div class="font-label-caps text-on-surface-variant" id="waterLevelLabel">Tinggi Muka Air</div>
+                    <div class="font-stat-lg text-primary mt-1"><span id="current-distance">-</span> <span class="text-headline-md text-on-surface-variant">cm</span></div>
+                    <div class="font-label-caps text-on-surface-variant mt-1">Waktu: <span id="current-time">-</span></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3" id="rainfallSection" style="display:none">
+                    <div class="border-2 border-primary p-2 bg-surface-container font-label-caps">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><span class="text-on-surface-variant">Curah Hujan (1h):</span> <b id="rainfall-curah">-</b></div>
+                            <div><span class="text-on-surface-variant">Jumlah Tip:</span> <b id="rainfall-tip">-</b></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3" id="weatherSection" style="display:none">
+                    <div class="border-2 border-primary p-2 bg-surface-container font-label-caps">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><span class="text-on-surface-variant">Suhu:</span> <b id="weather-temp">-</b></div>
+                            <div><span class="text-on-surface-variant">Kelembaban:</span> <b id="weather-humi">-</b></div>
+                            <div><span class="text-on-surface-variant">Angin Rata2:</span> <b id="weather-windavg">-</b></div>
+                            <div><span class="text-on-surface-variant">Angin Maks:</span> <b id="weather-windmax">-</b></div>
+                            <div><span class="text-on-surface-variant">Arah:</span> <b id="weather-windir">-</b></div>
+                            <div><span class="text-on-surface-variant">Tekanan:</span> <b id="weather-baro">-</b></div>
+                            <div><span class="text-on-surface-variant">Hujan 1h:</span> <b id="weather-rain1h">-</b></div>
+                            <div><span class="text-on-surface-variant">Hujan 24h:</span> <b id="weather-rain24h">-</b></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="gauge-row" id="gaugeRow"></div>
+
+                <div class="status-bar mt-4"><div class="indicator" id="indicator"></div></div>
+                <div class="flex justify-between font-label-caps text-label-caps text-on-surface-variant mt-1">
+                    <span>AMAN</span><span>WASPADA</span><span>SIAGA</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart + Link -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2 bg-[#FFFDF0] border-2 border-primary brutal-shadow-lg p-0 flex flex-col">
+                <div class="border-b-2 border-primary bg-primary text-on-primary p-2 px-4 flex justify-between items-center">
+                    <span class="font-label-caps uppercase tracking-widest" id="chartTitle">TINGGI MUKA AIR</span>
+                    <span class="material-symbols-outlined text-[18px]">show_chart</span>
+                </div>
+                <div class="p-3 h-72"><canvas id="rainChart"></canvas></div>
+            </div>
+            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow p-0 flex flex-col items-center justify-center p-8 text-center">
+                <span class="material-symbols-outlined text-5xl text-on-surface-variant mb-2">ssid_chart</span>
+                <div class="font-label-caps text-on-surface-variant">Analitik prediksi &amp; perbandingan</div>
+                <a href="/prediksi.html" class="mt-3 px-4 py-2 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all font-ui-action uppercase tracking-widest flex items-center gap-2">
+                    <span class="material-symbols-outlined">open_in_new</span> BUKA ANALITIK
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Mobile Bottom Nav -->
+<nav class="md:hidden flex justify-around items-center w-full border-t-2 border-primary bg-surface py-2 sticky bottom-0 z-50 shadow-[0px_-4px_0px_0px_rgba(0,0,0,1)]">
+    <a class="flex flex-col items-center p-2 text-secondary underline decoration-2 underline-offset-4 font-bold bg-surface-container border-2 border-primary -translate-y-2 brutal-shadow" href="/dashboard.html">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="font-label-caps text-[10px] mt-1">DASHBOARD</span>
+    </a>
+    <a class="flex flex-col items-center p-2 text-primary opacity-70" href="/prediksi.html">
+        <span class="material-symbols-outlined">analytics</span>
+        <span class="font-label-caps text-[10px] mt-1">ANALITIK</span>
+    </a>
+</nav>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/dashboard.js"></script>
 </body>
 </html>

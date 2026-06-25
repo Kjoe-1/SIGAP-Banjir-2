@@ -1,109 +1,264 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIGAP - Analitik Prediksi</title>
-    <link rel="stylesheet" href="css/dashboard.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIGAP - Analitik Prediksi</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Georgia:ital,wght@0,400;0,700;1,400;1,700&family=Work+Sans:ital,wght@0,100..900;1,100..900&family=Material+Symbols+Outlined:wght,FILL,GRAD,opsz@100..700,0..1,-50..200,20..48&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/dashboard.css">
+<script>
+tailwind.config = {
+    darkMode: "class",
+    theme: {
+        extend: {
+            colors: {
+                "secondary-fixed": "#ffd9de", "on-secondary-container": "#fffbff", "tertiary-container": "#002118",
+                "on-primary-fixed": "#1c1b1b", "surface-container-highest": "#ebe3c3", "primary-container": "#1c1b1b",
+                "secondary-fixed-dim": "#ffb2bf", "outline-variant": "#c4c7c7", "on-tertiary": "#ffffff",
+                "on-tertiary-fixed-variant": "#00513f", "error": "#ba1a1a", "tertiary-fixed-dim": "#00e0b3",
+                "on-primary": "#ffffff", "on-secondary": "#ffffff", "error-container": "#ffdad6", "tertiary": "#000000",
+                "on-primary-fixed-variant": "#474646", "surface": "#fff9ea", "on-secondary-fixed-variant": "#90003b",
+                "surface-tint": "#5f5e5e", "background": "#fff9ea", "outline": "#747878", "primary": "#000000",
+                "secondary-container": "#e50062", "on-surface-variant": "#444748", "inverse-surface": "#35311b",
+                "surface-container-lowest": "#ffffff", "on-error": "#ffffff", "on-error-container": "#93000a",
+                "on-primary-container": "#858383", "surface-variant": "#ebe3c3", "surface-container-low": "#fcf4d3",
+                "inverse-on-surface": "#f9f1d0", "inverse-primary": "#c8c6c5", "surface-bright": "#fff9ea",
+                "tertiary-fixed": "#24ffcd", "surface-container-high": "#f1e8c8", "primary-fixed": "#e5e2e1",
+                "surface-container": "#f6eecd", "primary-fixed-dim": "#c8c6c5", "on-surface": "#1f1c08",
+                "on-secondary-fixed": "#3f0016", "surface-dim": "#e2daba", "on-tertiary-fixed": "#002118",
+                "on-tertiary-container": "#009576", "on-background": "#1f1c08", "secondary": "#b7004d"
+            },
+            borderRadius: { DEFAULT: "0px", lg: "0px", xl: "0px", full: "0px" },
+            fontFamily: { "body-base": ["Georgia"], "label-caps": ["Courier Prime"], "headline-md": ["Work Sans"], "display-lg": ["Georgia"], "stat-lg": ["Courier Prime"], "ui-action": ["Work Sans"] },
+            fontSize: {
+                "body-base": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                "label-caps": ["12px", { lineHeight: "16px", letterSpacing: "0.08em", fontWeight: "700" }],
+                "headline-md": ["22px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "800" }],
+                "display-lg": ["40px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                "stat-lg": ["32px", { lineHeight: "36px", letterSpacing: "-0.03em", fontWeight: "700" }],
+                "ui-action": ["14px", { lineHeight: "16px", fontWeight: "800" }]
+            }
+        }
+    }
+};
+</script>
 </head>
-<body>
+<body class="bg-surface grid-bg text-on-surface min-h-screen flex flex-col md:flex-row antialiased selection:bg-secondary-fixed selection:text-on-surface">
 
-<div class="dashboard-layout">
-
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h1>SIGAP</h1>
-            <p>Analitik Prediksi</p>
-        </div>
-        <div class="location-section">
-            <h3>Lokasi</h3>
-            <button class="location-btn" id="lok1">📍 Lokasi 1</button>
-            <button class="location-btn" id="lok2">📍 Lokasi 2</button>
-            <button class="location-btn active" id="lok3">📍 Lokasi 3</button>
-        </div>
-        <div class="sidebar-info">
-            <h4>Keterangan</h4>
-            <p style="font-size:11px;margin-top:6px;line-height:1.4">
-                <b>Keandalan:</b><br>
-                <span class="keandalan-badge badge-andal">andal</span> recall &gt; 80%<br>
-                <span class="keandalan-badge badge-indikatif">indikatif</span> recall ~27%<br>
-                <span class="keandalan-badge badge-tidak">tidak tersedia</span> data minim
-            </p>
-            <hr>
-            <p id="active-location" style="font-size:12px">Kalikobor</p>
-            <p style="font-size:11px;opacity:0.7" id="sensorTipe"></p>
-        </div>
-    </aside>
-
-    <main class="main-content">
-
-        <div class="navbar">
-            <div>
-                <h2>Analitik & Perbandingan Prediksi</h2>
-                <p class="lokasi">Lokasi: <span id="lokasi-text">Kalikobor</span></p>
-            </div>
-            <div class="nav-btn">
-                <a href="/dashboard.html" style="text-decoration:none"><button>Dashboard</button></a>
-            </div>
-        </div>
-
-        <!-- STATUS RINGKAS -->
-        <div class="top-grid" style="grid-template-columns:1fr 1fr 1fr">
-            <div class="card" style="text-align:center">
-                <p style="font-size:12px;color:#666">Status Saat Ini</p>
-                <h2 id="ringkasanStatus" style="margin:4px 0">-</h2>
-                <p style="font-size:12px;color:#666">Conf: <b id="ringkasanConf">-</b></p>
-            </div>
-            <div class="card" style="text-align:center">
-                <p style="font-size:12px;color:#666">Tinggi Air</p>
-                <h2 id="ringkasanTinggi" style="margin:4px 0">-</h2>
-            </div>
-            <div class="card" style="text-align:center">
-                <p style="font-size:12px;color:#666">Prediksi 1 Jam</p>
-                <h2 id="ringkasanPred1" style="margin:4px 0">-</h2>
-                <p style="font-size:12px;color:#666"><b id="ringkasanConf1">-</b></p>
-            </div>
-        </div>
-
-        <!-- WARNING ALERT -->
-        <div id="peringatanAlert" class="peringatan-alert" style="display:none;margin-bottom:12px"></div>
-
-        <!-- CHART 1: FORECAST 24 JAM -->
-        <div class="card grafik" style="margin-bottom:12px;height:auto;padding-bottom:20px">
-            <h3>Forecast 24 Jam <span id="keandalanBadge" class="keandalan-badge"></span></h3>
-            <p style="font-size:12px;color:#666;margin-bottom:10px" id="catatanTipe"></p>
-            <canvas id="forecastChart" style="height:260px !important"></canvas>
-            <div class="chart-legend" style="margin-top:6px">
-                <span class="legend-item"><span class="legend-dot" style="background:#22c55e"></span> AMAN</span>
-                <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span> WASPADA</span>
-                <span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span> SIAGA</span>
-                <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span> Tinggi Air</span>
-            </div>
-        </div>
-
-        <!-- CHART 2: PERBANDINGAN PREDIKSI VS AKTUAL -->
-        <div class="card grafik perbandingan-card" style="margin-bottom:12px;height:auto;padding-bottom:20px">
-            <div class="perbandingan-header">
-                <h3>Prediksi vs Data Asli</h3>
-                <div class="horizon-tabs" id="horizonTabs">
-                    <button class="horizon-btn active" data-h="1">1 Jam</button>
-                    <button class="horizon-btn" data-h="3">3 Jam</button>
-                    <button class="horizon-btn" data-h="6">6 Jam</button>
-                    <button class="horizon-btn" data-h="12">12 Jam</button>
-                    <button class="horizon-btn" data-h="24">24 Jam</button>
-                </div>
-            </div>
-            <canvas id="bandingChart" style="height:260px !important"></canvas>
-            <div class="chart-legend">
-                <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span> Hasil Prediksi</span>
-                <span class="legend-item"><span class="legend-dot" style="background:#f97316"></span> Data Asli</span>
-            </div>
-        </div>
-
-    </main>
+<!-- Mobile Top Bar -->
+<div class="md:hidden flex justify-between items-center px-4 py-2 w-full sticky top-0 z-50 bg-surface border-b-2 border-primary brutal-shadow">
+    <div class="font-headline-md uppercase tracking-tighter text-primary">SECTOR_MONITOR</div>
+    <button class="p-2 border-2 border-primary active:translate-x-[2px] active:translate-y-[2px] brutal-shadow active:shadow-none bg-surface-container">
+        <span class="material-symbols-outlined text-primary">menu</span>
+    </button>
 </div>
 
+<!-- Sidebar -->
+<nav class="hidden md:flex flex-col h-screen py-6 gap-4 bg-surface-container border-r-2 border-primary sticky top-0 w-56 shrink-0 z-40">
+    <div class="px-4 mb-6">
+        <div class="font-headline-md text-primary text-shadow-riso uppercase tracking-tighter">SECTOR_MONITOR</div>
+        <div class="font-label-caps text-on-surface-variant mt-1">SIGAP_BANJIR</div>
+    </div>
+    <div class="flex-1 overflow-y-auto px-2 flex flex-col gap-2">
+        <div class="font-label-caps text-outline px-2 mb-1">ZONES</div>
+        <a id="navLok1" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:scale-95 transition-transform cursor-pointer" data-lokasi="1">
+            <span class="material-symbols-outlined">location_on</span>
+            <span class="font-label-caps uppercase tracking-widest" id="navLok1Name">PUCANGANOM</span>
+        </a>
+        <a id="navLok2" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:scale-95 transition-transform cursor-pointer" data-lokasi="2">
+            <span class="material-symbols-outlined">location_on</span>
+            <span class="font-label-caps uppercase tracking-widest" id="navLok2Name">UHT</span>
+        </a>
+        <a id="navLok3" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-bold brutal-shadow active:scale-95 transition-transform cursor-pointer" data-lokasi="3">
+            <span class="material-symbols-outlined">analytics</span>
+            <span class="font-label-caps uppercase tracking-widest" id="navLok3Name">KALIKOBOR</span>
+        </a>
+    </div>
+    <div class="mt-auto px-2 flex flex-col gap-2 pb-4">
+        <div class="h-px w-full bg-primary mb-1"></div>
+        <div class="flex items-center gap-2 px-2 py-1 text-primary">
+            <span class="material-symbols-outlined text-[18px]">info</span>
+            <span class="font-label-caps">KEANDALAN</span>
+            <span id="sidebarKeandalan" class="font-label-caps text-on-surface-variant ml-auto"></span>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-h-screen w-full max-w-full">
+
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-end px-4 md:px-8 py-4 border-b-2 border-primary bg-surface/90 backdrop-blur-sm sticky top-0 md:top-auto z-30">
+        <div>
+            <h1 class="font-display-lg text-primary uppercase tracking-tighter text-shadow-riso mb-2">Analitik &amp; Perbandingan</h1>
+            <div class="flex items-center gap-2">
+                <span class="inline-block w-3 h-3 rounded-full bg-tertiary-fixed animate-pulse border border-primary"></span>
+                <span class="font-label-caps text-on-surface-variant">LOKASI: <span id="headerLokasi">Kalikobor</span></span>
+            </div>
+        </div>
+        <a href="/dashboard.html" class="mt-4 md:mt-0 flex items-center gap-2 px-4 py-2 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all rotate-1">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="font-ui-action uppercase tracking-widest">Dashboard</span>
+        </a>
+    </header>
+
+    <div class="p-4 md:p-8 flex flex-col gap-6">
+
+        <!-- Top Metric Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-lg -rotate-1 p-0 flex flex-col relative overflow-hidden hover:-translate-y-1 transition-transform">
+                <div class="bg-primary text-on-primary font-label-caps text-label-caps p-1 px-3 flex justify-between items-center">
+                    <span>ID: STATUS_SAAT_INI</span>
+                    <span class="material-symbols-outlined text-[16px]">warning</span>
+                </div>
+                <div class="p-4 flex-1 flex flex-col justify-center items-center text-center">
+                    <div class="font-stat-lg text-secondary-container text-shadow-riso animate-pulse" id="metricStatus">-</div>
+                    <div class="font-body-base text-on-surface-variant mt-1" id="metricStatusDesc">Memuat data...</div>
+                </div>
+                <div class="absolute bottom-2 right-2 opacity-10 pointer-events-none">
+                    <span class="material-symbols-outlined text-9xl">water_drop</span>
+                </div>
+            </div>
+
+            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-lg rotate-1 p-0 flex flex-col relative hover:-translate-y-1 transition-transform">
+                <div class="bg-primary text-on-primary font-label-caps text-label-caps p-1 px-3 flex justify-between items-center">
+                    <span>ID: TINGGI_AIR</span>
+                    <span class="material-symbols-outlined text-[16px]">straighten</span>
+                </div>
+                <div class="p-4 flex flex-1 items-center gap-4">
+                    <div class="w-8 h-24 border-2 border-primary bg-surface-container relative overflow-hidden">
+                        <div id="gaugeNow" class="absolute bottom-0 left-0 right-0 h-[50%] halftone-cyan border-t-2 border-primary transition-all duration-1000"></div>
+                        <div class="absolute top-1/4 left-0 w-full h-px bg-primary/30"></div>
+                        <div class="absolute top-1/2 left-0 w-full h-px bg-primary/30"></div>
+                        <div class="absolute top-3/4 left-0 w-full h-px bg-primary/30"></div>
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="font-stat-lg text-primary tracking-tighter"><span id="metricTinggi">-</span><span class="text-headline-md ml-1">cm</span></div>
+                        <div class="font-label-caps text-on-surface-variant mt-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px] text-tertiary-fixed-dim">arrow_upward</span>
+                            <span id="metricTrend">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-lg -rotate-0.5 p-0 flex flex-col relative hover:-translate-y-1 transition-transform">
+                <div class="bg-primary text-on-primary font-label-caps text-label-caps p-1 px-3 flex justify-between items-center">
+                    <span>ID: PREDIKSI_1_JAM</span>
+                    <span class="material-symbols-outlined text-[16px]">schedule</span>
+                </div>
+                <div class="p-4 flex flex-1 items-center gap-4">
+                    <div class="w-8 h-24 border-2 border-primary bg-surface-container relative overflow-hidden">
+                        <div id="gaugePred" class="absolute bottom-0 left-0 right-0 h-[50%] halftone-pink border-t-2 border-primary transition-all duration-1000"></div>
+                        <div class="absolute top-[10%] left-0 w-full border-t border-dashed border-primary"></div>
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="font-stat-lg text-secondary-container tracking-tighter"><span id="metricPred1">-</span><span class="text-headline-md ml-1">cm</span></div>
+                        <div class="font-label-caps text-on-surface-variant mt-1 text-secondary-container" id="metricPred1Label">AMBANG_SIAGA_DEKAT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forecast Chart -->
+        <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-xl p-0 flex flex-col">
+            <div class="border-b-2 border-primary bg-surface-container-highest p-3 px-4 flex flex-wrap justify-between items-center gap-2">
+                <h2 class="font-headline-md text-primary uppercase tracking-tighter">Forecast <span id="forecastLokasiLabel">Kalikobor</span></h2>
+                <div class="flex gap-3 font-label-caps">
+                    <div class="flex items-center gap-1"><div class="w-4 h-4 border border-primary bg-tertiary-fixed-dim halftone-bg"></div><span>AMAN</span></div>
+                    <div class="flex items-center gap-1"><div class="w-4 h-4 border border-primary bg-surface-variant stripe-bg"></div><span>WASPADA</span></div>
+                    <div class="flex items-center gap-1"><div class="w-4 h-4 border border-primary bg-secondary-container halftone-pink"></div><span>SIAGA</span></div>
+                </div>
+            </div>
+            <div class="p-4 relative w-full h-80 bg-surface grid-bg overflow-hidden flex items-end">
+                <div class="absolute left-0 right-0 top-[20%] border-t-2 border-dashed border-secondary-container flex items-center justify-end px-2 z-0">
+                    <span class="font-label-caps text-secondary-container bg-surface px-1 -translate-y-1/2">SIAGA</span>
+                </div>
+                <div class="absolute left-0 right-0 top-[50%] border-t-2 border-dashed border-primary flex items-center justify-end px-2 z-0">
+                    <span class="font-label-caps text-primary bg-surface px-1 -translate-y-1/2">WASPADA</span>
+                </div>
+                <div class="w-full h-full flex items-end gap-1 md:gap-2 pt-8 z-10" id="forecastBars">
+                    <div class="flex-1 bg-primary border border-primary h-[30%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">40cm</div></div>
+                    <div class="flex-1 bg-primary border border-primary h-[35%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">55cm</div></div>
+                    <div class="flex-1 bg-primary border border-primary h-[40%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">60cm</div></div>
+                    <div class="flex-1 bg-primary border border-primary h-[48%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">90cm</div></div>
+                    <div class="flex-1 bg-tertiary-fixed-dim halftone-bg border-2 border-primary h-[55%] relative group cursor-pointer shadow-[2px_0_0_0_#000] -translate-y-1"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">105cm</div></div>
+                    <div class="flex-1 bg-surface-variant stripe-bg border border-primary border-dashed h-[60%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">115cm</div></div>
+                    <div class="flex-1 bg-surface-variant stripe-bg border border-primary border-dashed h-[65%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">125cm</div></div>
+                    <div class="flex-1 bg-surface-variant stripe-bg border border-primary border-dashed h-[75%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">140cm</div></div>
+                    <div class="flex-1 bg-secondary-container halftone-pink border-2 border-primary h-[82%] relative group cursor-pointer z-10 shadow-[2px_0_0_0_#000]"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-secondary-container text-on-secondary font-label-caps text-xs p-1 whitespace-nowrap z-20">155cm</div></div>
+                    <div class="flex-1 bg-secondary-container halftone-pink border-2 border-primary h-[85%] relative group cursor-pointer z-10 shadow-[2px_0_0_0_#000]"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-secondary-container text-on-secondary font-label-caps text-xs p-1 whitespace-nowrap z-20">160cm</div></div>
+                    <div class="flex-1 bg-surface-variant stripe-bg border border-primary border-dashed h-[70%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">130cm</div></div>
+                    <div class="flex-1 bg-surface-variant stripe-bg border border-primary border-dashed h-[60%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">110cm</div></div>
+                </div>
+            </div>
+            <div class="border-t-2 border-primary bg-surface p-1 flex justify-between font-label-caps text-label-caps text-primary px-4">
+                <span>-12h</span><span>-6h</span><span id="forecastNowLabel">NOW</span><span>+6h</span><span>+12h</span><span>+24h</span>
+            </div>
+        </div>
+
+        <!-- Comparison Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+            <div class="lg:col-span-1 flex flex-col gap-4">
+                <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow p-3 rotate-1">
+                    <h3 class="font-headline-md text-primary mb-2 uppercase">Horizon</h3>
+                    <div class="flex flex-wrap gap-1" id="horizonTabs">
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface font-label-caps hover:bg-primary hover:text-on-primary transition-colors" data-h="1">1H</button>
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface font-label-caps hover:bg-primary hover:text-on-primary transition-colors" data-h="3">3H</button>
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-label-caps translate-y-[-2px] brutal-shadow" data-h="6">6H</button>
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface font-label-caps hover:bg-primary hover:text-on-primary transition-colors" data-h="12">12H</button>
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface font-label-caps hover:bg-primary hover:text-on-primary transition-colors" data-h="24">24H</button>
+                    </div>
+                </div>
+                <div class="bg-surface-container-highest border-2 border-primary p-4 flex items-center gap-4 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 border-4 border-secondary-container rounded-full opacity-20 -rotate-12 flex items-center justify-center">
+                        <span class="font-label-caps text-xs text-secondary-container font-bold">AI</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-label-caps text-on-surface-variant mb-1">Akurasi Model</div>
+                        <div class="font-stat-lg text-primary" id="bandingAkurasi">87.4%</div>
+                    </div>
+                    <div class="flex-1 border-l-2 border-primary pl-4">
+                        <div class="font-label-caps text-on-surface-variant mb-1">Deviasi</div>
+                        <div class="font-body-bold text-secondary-container" id="bandingDeviasi">± 12.5 cm</div>
+                    </div>
+                </div>
+            </div>
+            <div class="lg:col-span-2 bg-[#FFFDF0] border-2 border-primary brutal-shadow-lg flex flex-col h-full -rotate-0.5">
+                <div class="border-b-2 border-primary bg-primary text-on-primary p-3 flex justify-between items-center">
+                    <h2 class="font-label-caps uppercase tracking-widest">Prediksi vs Data Asli</h2>
+                    <span class="material-symbols-outlined text-[18px]">ssid_chart</span>
+                </div>
+                <div class="p-4 flex-1 relative min-h-[200px] flex items-center justify-center grid-bg" id="bandingChartContainer">
+                    <svg class="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
+                        <polyline id="bandingLineAktual" fill="none" points="0,80 20,75 40,60 60,45 80,40 100,20" stroke="#000000" stroke-linejoin="miter" stroke-width="3"></polyline>
+                        <polyline id="bandingLinePrediksi" fill="none" points="0,78 20,70 40,65 60,40 80,45 100,15" stroke="#e50062" stroke-dasharray="4,4" stroke-linejoin="miter" stroke-width="3"></polyline>
+                    </svg>
+                </div>
+                <div class="border-t-2 border-primary p-2 flex justify-center gap-4 font-label-caps bg-surface">
+                    <div class="flex items-center gap-1"><div class="w-4 h-1 bg-primary"></div><span>DATA ASLI</span></div>
+                    <div class="flex items-center gap-1"><div class="w-4 h-1 border-t-2 border-dashed border-secondary-container"></div><span class="text-secondary-container">PREDIKSI</span></div>
+                    <span class="text-on-surface-variant ml-auto text-[10px]" id="bandingDateRange"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Mobile Bottom Nav -->
+<nav class="md:hidden flex justify-around items-center w-full border-t-2 border-primary bg-surface py-2 sticky bottom-0 z-50 shadow-[0px_-4px_0px_0px_rgba(0,0,0,1)]">
+    <a class="flex flex-col items-center p-2 text-primary opacity-70" href="/dashboard.html">
+        <span class="material-symbols-outlined">location_on</span>
+        <span class="font-label-caps text-[10px] mt-1">DASHBOARD</span>
+    </a>
+    <a class="flex flex-col items-center p-2 text-secondary underline decoration-2 underline-offset-4 font-bold bg-surface-container border-2 border-primary -translate-y-2 brutal-shadow" href="/prediksi.html">
+        <span class="material-symbols-outlined">analytics</span>
+        <span class="font-label-caps text-[10px] mt-1">ANALITIK</span>
+    </a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/prediksi.js"></script>
 </body>
 </html>

@@ -1,44 +1,52 @@
 let activeLokasi = 3;
-const FE2ML = { 1: 1, 2: 1, 3: 2 };
-const LOKASI_NAMES = { 1: "Keputih", 2: "Hangtuah", 3: "Kalikobor" };
+const LOKASI_DATA = {
+  1: { name: "Pucanganom", ml: 1 },
+  2: { name: "UHT", ml: 1 },
+  3: { name: "Kalikobor", ml: 2 },
+};
 
 function setLokasi(fe) {
   activeLokasi = fe;
-  document.getElementById("lokasi-text").innerText = LOKASI_NAMES[fe];
-  document.getElementById("active-location").innerText = LOKASI_NAMES[fe];
+  const d = LOKASI_DATA[fe];
+  document.getElementById("headerLokasi").innerText = d.name;
+  document.getElementById("forecastLokasiLabel").innerText = d.name;
 
-  document.querySelectorAll(".location-btn").forEach((b) => b.classList.remove("active"));
-  const btn = document.getElementById("lok" + fe);
-  if (btn) btn.classList.add("active");
+  document.querySelectorAll("[id^=navLok]").forEach((el) => {
+    el.className = "flex items-center gap-2 px-2 py-1 border border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:scale-95 transition-transform cursor-pointer";
+  });
+  const activeEl = document.getElementById("navLok" + fe);
+  if (activeEl) {
+    activeEl.className = "flex items-center gap-2 px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-bold brutal-shadow active:scale-95 transition-transform cursor-pointer";
+  }
 
-  document.querySelectorAll(".horizon-btn").forEach((b) => b.classList.remove("active"));
-  const h1 = document.querySelector('.horizon-btn[data-h="1"]');
-  if (h1) h1.classList.add("active");
-  horizonAktif = "1";
-
+  resetHorizon("6");
   muatData();
 }
 
-document.getElementById("lok1").onclick = () => setLokasi(1);
-document.getElementById("lok2").onclick = () => setLokasi(2);
-document.getElementById("lok3").onclick = () => setLokasi(3);
+document.getElementById("navLok1").onclick = () => setLokasi(1);
+document.getElementById("navLok2").onclick = () => setLokasi(2);
+document.getElementById("navLok3").onclick = () => setLokasi(3);
 
-let horizonAktif = "1";
-
-document.querySelectorAll(".horizon-btn").forEach((btn) => {
-  btn.addEventListener("click", function () {
-    document.querySelectorAll(".horizon-btn").forEach((b) => b.classList.remove("active"));
-    this.classList.add("active");
-    horizonAktif = this.dataset.h;
-    muatBanding();
+function resetHorizon(h) {
+  document.querySelectorAll(".horizon-btn").forEach((b) => {
+    b.className = "px-2 py-1 border border-primary bg-surface font-label-caps hover:bg-primary hover:text-on-primary transition-colors cursor-pointer";
   });
+  const btn = document.querySelector(`.horizon-btn[data-h="${h}"]`);
+  if (btn) btn.className = "px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-label-caps translate-y-[-2px] brutal-shadow cursor-pointer";
+  window._horizon = h;
+}
+
+document.getElementById("horizonTabs").addEventListener("click", (e) => {
+  const btn = e.target.closest(".horizon-btn");
+  if (!btn || btn.dataset.h === window._horizon) return;
+  resetHorizon(btn.dataset.h);
+  muatBanding();
 });
 
 async function muatData() {
   await Promise.all([muatPrediksi(), muatBanding()]);
 }
 
-// ==================== FORECAST 24 JAM ====================
 async function muatPrediksi() {
   try {
     const res = await fetch("/api/prediksi?lokasi=" + activeLokasi);
@@ -47,157 +55,114 @@ async function muatPrediksi() {
 
     const skrg = data.sekarang;
     const pred = data.prediksi;
-    const warn = data.peringatan;
+    const p1 = pred ? pred["1"] : null;
 
-    // Ringkasan
-    document.getElementById("ringkasanStatus").innerText = skrg.status;
-    document.getElementById("ringkasanTinggi").innerHTML = (skrg.tinggi_air_cm != null ? skrg.tinggi_air_cm : "-") + ' <small style="font-size:14px;color:#666">cm</small>';
-    document.getElementById("ringkasanConf").innerText = skrg.confidence != null ? Math.round(skrg.confidence * 100) + "%" : "-";
+    document.getElementById("metricStatus").innerText = skrg.status;
+    document.getElementById("metricStatusDesc").innerText = data.catatan || "Kondisi Normal";
+    document.getElementById("metricTinggi").innerText = skrg.tinggi_air_cm != null ? skrg.tinggi_air_cm : "-";
+    document.getElementById("metricTrend").innerText = (skrg.distance_cm != null ? "Jarak: " + skrg.distance_cm + " cm" : "-");
 
-    const p1 = pred["1"];
+    const maxH = 300;
+    const tinggi = skrg.tinggi_air_cm || 0;
+    const gaugeNow = document.getElementById("gaugeNow");
+    if (gaugeNow) gaugeNow.style.height = Math.min(tinggi / maxH * 100, 95) + "%";
+
     if (p1 && p1.status !== "tidak_tersedia") {
-      document.getElementById("ringkasanPred1").innerHTML = (p1.tinggi_air_cm != null ? p1.tinggi_air_cm : "-") + ' <small style="font-size:14px;color:#666">cm</small>';
-      document.getElementById("ringkasanConf1").innerText = p1.confidence != null ? Math.round(p1.confidence * 100) + "%" : "-";
+      document.getElementById("metricPred1").innerText = p1.tinggi_air_cm != null ? p1.tinggi_air_cm : "-";
+      document.getElementById("metricPred1Label").innerText = p1.status + (p1.keandalan ? " (" + p1.keandalan + ")" : "");
+      const gaugePred = document.getElementById("gaugePred");
+      if (gaugePred) gaugePred.style.height = Math.min((p1.tinggi_air_cm || 0) / maxH * 100, 95) + "%";
     }
 
-    // Alert
-    const alertEl = document.getElementById("peringatanAlert");
-    if (warn && warn.ada) {
-      alertEl.style.display = "flex";
-      alertEl.className = "peringatan-alert peringatan-" + warn.status.toLowerCase();
-      alertEl.innerHTML = '<span class="alert-icon">⚠️</span> ' + warn.pesan;
-    } else {
-      alertEl.style.display = "none";
-    }
+    const badgeEl = document.getElementById("sidebarKeandalan");
+    if (badgeEl) badgeEl.innerText = data.tipe === "klasifikasi" ? "klasifikasi" : (p1 ? p1.keandalan || "-" : "-");
 
-    // Badge keandalan
-    const badgeEl = document.getElementById("keandalanBadge");
-    if (data.tipe === "klasifikasi") {
-      badgeEl.innerText = "klasifikasi";
-      badgeEl.className = "keandalan-badge badge-tidak";
-    } else if (p1) {
-      badgeEl.innerText = p1.keandalan || "-";
-      badgeEl.className = "keandalan-badge badge-" + (p1.keandalan || "tidak");
-    }
-
-    // Tipe catatan
-    document.getElementById("catatanTipe").innerText = data.catatan || "";
-    document.getElementById("sensorTipe").innerText = "Tipe: " + data.tipe;
-
-    // Chart forecast 24 jam
-    const canvas = document.getElementById("forecastChart");
-    if (!canvas) return;
-    if (window.forecastChartInst) window.forecastChartInst.destroy();
-
-    const H = [0, 1, 3, 6, 12, 24];
-    const L = ["Sekarang"];
-    for (let i = 1; i < H.length; i++) L.push("+" + H[i] + "jam");
-
-    const V = [skrg.tinggi_air_cm != null ? skrg.tinggi_air_cm : null];
-    const C = [skrg.status || "AMAN"];
-    for (let i = 1; i < H.length; i++) {
-      const p = pred[String(H[i])];
-      if (p && p.tinggi_air_cm != null) {
-        V.push(p.tinggi_air_cm);
-        C.push(p.status);
-      } else {
-        V.push(null);
-        C.push("tidak");
+    // Forecast bars
+    const barContainer = document.getElementById("forecastBars");
+    if (barContainer && pred) {
+      const H = [1, 3, 6, 12, 24];
+      const bars = barContainer.children;
+      const barCount = bars.length;
+      for (let i = 0; i < barCount; i++) {
+        const bar = bars[i];
+        const idx = i < barCount - H.length ? 0 : H[i - (barCount - H.length)];
+        const p = idx > 0 ? pred[String(idx)] : null;
+        let h = 10, cls = "bg-primary border border-primary", label = "-";
+        if (p && p.tinggi_air_cm != null) {
+          h = Math.min(p.tinggi_air_cm / maxH * 100, 95);
+          label = p.tinggi_air_cm + "cm";
+          cls = p.status === "SIAGA"
+            ? "bg-secondary-container halftone-pink border-2 border-primary shadow-[2px_0_0_0_#000] z-10"
+            : p.status === "WASPADA"
+              ? "bg-surface-variant stripe-bg border border-primary border-dashed"
+              : "bg-primary border border-primary";
+        }
+        bar.style.height = h + "%";
+        bar.className = "flex-1 " + cls + " relative group cursor-pointer transition-all duration-500";
+        const tip = bar.querySelector("div");
+        if (tip) tip.innerText = label;
       }
     }
-
-    const colors = { AMAN: "#22c55e", WASPADA: "#f59e0b", SIAGA: "#ef4444", tidak: "#94a3b8" };
-    const pointColors = V.map((_, i) => colors[C[i]] || "#94a3b8");
-    const hasData = V.some((v) => v != null);
-
-    window.forecastChartInst = new Chart(canvas, {
-      type: "line",
-      data: {
-        labels: L,
-        datasets: [
-          {
-            label: "Tinggi Air (cm)",
-            data: V,
-            borderColor: "#3b82f6",
-            backgroundColor: "rgba(59,130,236,0.1)",
-            tension: 0.3,
-            pointBackgroundColor: pointColors,
-            pointBorderColor: pointColors,
-            pointRadius: 7,
-            pointHoverRadius: 9,
-            fill: hasData,
-            spanGaps: false,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function (ctx) {
-                const idx = ctx.dataIndex;
-                return (C[idx] || "-") + ": " + (ctx.parsed.y != null ? ctx.parsed.y.toFixed(1) + " cm" : "N/A");
-              },
-            },
-          },
-        },
-        scales: {
-          x: { ticks: { font: { size: 12 } } },
-          y: { beginAtZero: true, title: { display: true, text: "Tinggi Air (cm)" } },
-        },
-      },
-    });
   } catch (e) {
-    console.error("muatPrediksi error:", e);
+    console.error("Prediksi error:", e);
   }
 }
 
-// ==================== PERBANDINGAN ====================
 async function muatBanding() {
   try {
     const res = await fetch("/api/perbandingan?lokasi=" + activeLokasi + "&max=50");
     const data = await res.json();
-    if (!data.success) return;
+    if (!data.success) {
+      document.getElementById("bandingAkurasi").innerText = "-";
+      document.getElementById("bandingDeviasi").innerText = "-";
+      return;
+    }
 
-    const hData = data[horizonAktif];
-    if (!hData || !hData.waktu || hData.waktu.length === 0) return;
+    const h = window._horizon || "6";
+    const hData = data[h];
+    if (!hData || !hData.waktu || hData.waktu.length < 2) {
+      document.getElementById("bandingAkurasi").innerText = "Data tidak cukup";
+      document.getElementById("bandingDeviasi").innerText = "-";
+      return;
+    }
 
-    const labels = hData.waktu.map((t) => {
-      const d = new Date(t);
-      return d.toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-    });
+    // Stats
+    const diffs = hData.prediksi.map((p, i) => Math.abs(p - hData.aktual[i]));
+    const avgDiff = diffs.reduce((a, b) => a + b, 0) / diffs.length;
+    const accuracy = Math.max(0, Math.min(100, 100 - avgDiff * 2));
+    document.getElementById("bandingAkurasi").innerText = accuracy.toFixed(1) + "%";
+    document.getElementById("bandingDeviasi").innerText = "± " + avgDiff.toFixed(1) + " cm";
 
-    const canvas = document.getElementById("bandingChart");
-    if (!canvas) return;
-    if (window.bandingChartInst) window.bandingChartInst.destroy();
+    // Sample points for SVG
+    const step = Math.max(1, Math.floor(hData.waktu.length / 20));
+    const pts = [];
+    for (let i = 0; i < hData.waktu.length; i += step) {
+      pts.push({ a: hData.aktual[i], p: hData.prediksi[i] });
+    }
+    if (pts.length < 2) return;
 
-    window.bandingChartInst = new Chart(canvas, {
-      type: "line",
-      data: {
-        labels,
-        datasets: [
-          { label: "Hasil Prediksi", data: hData.prediksi, borderColor: "#3b82f6", backgroundColor: "rgba(59,130,236,0.1)", tension: 0.3, pointRadius: 3, pointHoverRadius: 5, fill: false },
-          { label: "Data Asli", data: hData.aktual, borderColor: "#f97316", backgroundColor: "rgba(249,115,22,0.1)", tension: 0.3, pointRadius: 3, pointHoverRadius: 5, fill: false },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ": " + ctx.parsed.y.toFixed(1) + " cm" } },
-        },
-        scales: {
-          x: { ticks: { maxRotation: 45, font: { size: 10 }, maxTicksLimit: 10 } },
-          y: { beginAtZero: true, title: { display: true, text: "Tinggi Air (cm)" } },
-        },
-      },
-    });
+    const allVals = pts.flatMap((d) => [d.a, d.p]);
+    const minV = Math.min(...allVals);
+    const maxV = Math.max(...allVals);
+    const range = maxV - minV || 1;
+
+    const aktualPts = pts.map((d, i) => ((i / (pts.length - 1)) * 100) + "," + (90 - ((d.a - minV) / range) * 75)).join(" ");
+    const predPts = pts.map((d, i) => ((i / (pts.length - 1)) * 100) + "," + (90 - ((d.p - minV) / range) * 75)).join(" ");
+
+    const lineA = document.getElementById("bandingLineAktual");
+    const lineP = document.getElementById("bandingLinePrediksi");
+    if (lineA) lineA.setAttribute("points", aktualPts);
+    if (lineP) lineP.setAttribute("points", predPts);
+
+    // Update date label: show range of data
+    const firstDate = new Date(hData.waktu[0]);
+    const lastDate = new Date(hData.waktu[hData.waktu.length - 1]);
+    const fmt = (d) => d.toLocaleDateString("id-ID", { day: "numeric", month: "short" }) + " " + d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    const dateLabel = document.getElementById("bandingDateRange");
+    if (dateLabel) dateLabel.innerText = fmt(firstDate) + " — " + fmt(lastDate);
+
   } catch (e) {
-    console.error("muatBanding error:", e);
+    console.error("Banding error:", e);
   }
 }
 
