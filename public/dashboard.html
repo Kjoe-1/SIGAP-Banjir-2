@@ -17,13 +17,13 @@
     <aside class="sidebar">
         <div class="sidebar-header">
             <h1>SIGAP</h1>
-            <p>Monitoring Banjir</p>
+            <p style="font-size:10px;color:#787774;margin-top:3px">Flood Monitor</p>
         </div>
         <div class="location-section">
             <h3>Lokasi</h3>
-            <button class="location-btn" id="lokasi1">Lokasi 1 <span style="float:right;opacity:0.4">→</span></button>
-            <button class="location-btn" id="lokasi2">Lokasi 2 <span style="float:right;opacity:0.4">→</span></button>
-            <button class="location-btn active" id="lokasi3">Lokasi 3 <span style="float:right;opacity:0.4">→</span></button>
+            <button class="location-btn" id="lokasi1">Pucanganom <span style="float:right;opacity:0.4">→</span></button>
+            <button class="location-btn" id="lokasi2">UHT <span style="float:right;opacity:0.4">→</span></button>
+            <button class="location-btn active" id="lokasi3">Kalikobor <span style="float:right;opacity:0.4">→</span></button>
         </div>
         <div class="sidebar-info">
             <h4>Sistem</h4>
@@ -31,6 +31,7 @@
             <hr>
             <h4>Aktif</h4>
             <p id="active-location">Kalikobor</p>
+            <p style="font-size:10px;color:#787774;margin-top:6px;line-height:1.4">DB: <span id="dbInfo">dbpvwemonbaru</span></p>
         </div>
     </aside>
 
@@ -38,8 +39,8 @@
 
         <div class="navbar">
             <div>
-                <h2>Dashboard</h2>
-                <p class="lokasi">Lokasi: <span id="lokasi-text">Kalikobor</span></p>
+                <h2>Dashboard Monitoring</h2>
+                <p class="lokasi">Lokasi: <span id="lokasi-text">Kalikobor</span> · <span id="dbInfoNav">dbpvwemonbaru</span></p>
             </div>
             <div class="nav-btn">
                 <span id="clock" class="clock"></span>
@@ -64,10 +65,12 @@
                 <div class="icon" id="statusIcon">✔</div>
                 <p id="statusDesc">Kondisi Normal</p>
                 <p style="font-size:12px;color:#787774">Confidence: <b id="confidenceText" style="color:#111">-</b></p>
+                <div id="peringatanAlert" style="display:none;margin:8px 0;padding:8px 10px;border-radius:6px;font-size:12px;font-weight:500"></div>
                 <hr>
                 <h3>Prediksi 1 Jam: <span id="forecastStatusText">-</span></h3>
-                <p style="font-size:12px;color:#787774">Tinggi Air: <b id="forecastRainText" style="color:#111">-</b></p>
+                <p style="font-size:12px;color:#787774"><span id="forecastLabel">Tinggi Air:</span> <b id="forecastRainText" style="color:#111">-</b></p>
                 <p style="font-size:12px;color:#787774">Confidence: <b id="forecastConfidenceText" style="color:#111">-</b></p>
+                <p style="font-size:12px;color:#787774">Keandalan: <b id="prediksiKeandalan" style="color:#111">-</b></p>
             </div>
             <div class="card map-card">
                 <h3>Peta</h3>
@@ -89,6 +92,13 @@
             <div class="water-level" id="waterLevelSection">
                 <p id="waterLevelLabel">Tinggi Muka Air</p>
                 <h1 id="current-distance">-</h1>
+            </div>
+
+            <div class="rainfall-section" id="rainfallSection" style="display:none">
+                <div class="weather-grid">
+                    <div class="weather-item"><p>Curah Hujan (1h)</p><b id="rainfall-curah">-</b></div>
+                    <div class="weather-item"><p>Jumlah Tip</p><b id="rainfall-tip">-</b></div>
+                </div>
             </div>
 
             <div class="weather-section" id="weatherSection" style="display:none">
@@ -124,9 +134,9 @@
             </div>
             <div class="card grafik link-card">
                 <div>
-                    <p style="font-size:24px;margin-bottom:6px">📊</p>
-                    <p>Lihat analitik prediksi &amp; perbandingan</p>
-                    <a href="/prediksi.html">Halaman Analitik →</a>
+                    <p style="font-size:22px;margin-bottom:6px">📊</p>
+                    <p>Analitik prediksi &amp; perbandingan</p>
+                    <a href="/prediksi.html">Buka Halaman Analitik →</a>
                 </div>
             </div>
         </div>
