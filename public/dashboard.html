@@ -3,31 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIGAP Dashboard</title>
+    <title>SIGAP — Dashboard</title>
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
+<div id="notif-container"></div>
+
 <div class="dashboard-layout">
 
     <aside class="sidebar">
         <div class="sidebar-header">
-            <h1>SIGAP-Banjir</h1>
-            <p>Sistem Monitoring Banjir</p>
+            <h1>SIGAP</h1>
+            <p>Monitoring Banjir</p>
         </div>
         <div class="location-section">
-            <h3>Lokasi Monitoring</h3>
-            <button class="location-btn" id="lokasi1">📍 Pucanganom</button>
-            <button class="location-btn" id="lokasi2">📍 UHT</button>
-            <button class="location-btn active" id="lokasi3">📍 Kalikobor</button>
+            <h3>Lokasi</h3>
+            <button class="location-btn" id="lokasi1">Lokasi 1 <span style="float:right;opacity:0.4">→</span></button>
+            <button class="location-btn" id="lokasi2">Lokasi 2 <span style="float:right;opacity:0.4">→</span></button>
+            <button class="location-btn active" id="lokasi3">Lokasi 3 <span style="float:right;opacity:0.4">→</span></button>
         </div>
         <div class="sidebar-info">
-            <h4>Status Sistem</h4>
+            <h4>Sistem</h4>
             <span class="online-dot"></span><span>Online</span>
             <hr>
-            <h4>Lokasi Aktif</h4>
+            <h4>Aktif</h4>
             <p id="active-location">Kalikobor</p>
         </div>
     </aside>
@@ -36,40 +38,48 @@
 
         <div class="navbar">
             <div>
-                <h2>Dashboard Monitoring Banjir</h2>
+                <h2>Dashboard</h2>
                 <p class="lokasi">Lokasi: <span id="lokasi-text">Kalikobor</span></p>
             </div>
             <div class="nav-btn">
                 <span id="clock" class="clock"></span>
+                <a href="/prediksi.html" style="text-decoration:none"><button>Analitik</button></a>
                 <button id="loginBtn">Login</button>
-                <button id="uploadBtn">Unggah Foto</button>
+                <button id="uploadBtn">Unggah</button>
                 <button id="logoutBtn">Logout</button>
             </div>
         </div>
 
+        <!-- Stat Cards -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card"><div class="stat-label">Status</div><div class="stat-value" id="statStatus">-</div></div>
+            <div class="stat-card"><div class="stat-label">Tinggi Air</div><div class="stat-value" id="statTinggi">-</div></div>
+            <div class="stat-card"><div class="stat-label">Waktu</div><div class="stat-value" style="font-size:14px" id="statWaktu">-</div></div>
+        </div>
+
+        <!-- Top Grid: Status Card + Map -->
         <div class="top-grid">
             <div class="card status-card">
                 <h3>Status AI/ML: <span id="statusText">AMAN</span></h3>
                 <div class="icon" id="statusIcon">✔</div>
                 <p id="statusDesc">Kondisi Normal</p>
-                <p>Confidence: <b id="confidenceText">-</b></p>
-                <div id="peringatanAlert" class="peringatan-alert" style="display:none;margin-bottom:12px"></div>
+                <p style="font-size:12px;color:#787774">Confidence: <b id="confidenceText" style="color:#111">-</b></p>
                 <hr>
-                <h3>Prediksi 1 Jam ke Depan: <span id="forecastStatusText">-</span></h3>
-                <p><span id="forecastLabel">Tinggi Air:</span> <b id="forecastRainText">-</b></p>
-                <p>Confidence: <b id="forecastConfidenceText">-</b></p>
-                <p>Keandalan: <b id="prediksiKeandalan">-</b></p>
+                <h3>Prediksi 1 Jam: <span id="forecastStatusText">-</span></h3>
+                <p style="font-size:12px;color:#787774">Tinggi Air: <b id="forecastRainText" style="color:#111">-</b></p>
+                <p style="font-size:12px;color:#787774">Confidence: <b id="forecastConfidenceText" style="color:#111">-</b></p>
             </div>
             <div class="card map-card">
-                <h3>Peta Lokasi</h3>
+                <h3>Peta</h3>
                 <div id="map"></div>
             </div>
         </div>
 
+        <!-- Summary -->
         <div class="card summary-card">
             <div class="summary-header">
                 <div>
-                    <p>Waktu Data Terakhir</p>
+                    <p style="font-size:10px;color:#787774;text-transform:uppercase;letter-spacing:0.08em;font-weight:700">Data Terakhir</p>
                     <h2 id="current-time">-</h2>
                 </div>
                 <span id="status-badge" class="badge">-</span>
@@ -88,16 +98,9 @@
                     <div class="weather-item"><p>Angin Rata2</p><b id="weather-windavg">-</b></div>
                     <div class="weather-item"><p>Angin Maks</p><b id="weather-windmax">-</b></div>
                     <div class="weather-item"><p>Arah Angin</p><b id="weather-windir">-</b></div>
-                    <div class="weather-item"><p>Tekanan Udara</p><b id="weather-baro">-</b></div>
+                    <div class="weather-item"><p>Tekanan</p><b id="weather-baro">-</b></div>
                     <div class="weather-item"><p>Curah Hujan 1h</p><b id="weather-rain1h">-</b></div>
                     <div class="weather-item"><p>Curah Hujan 24h</p><b id="weather-rain24h">-</b></div>
-                </div>
-            </div>
-
-            <div class="rainfall-section" id="rainfallSection" style="display:none">
-                <div class="weather-grid">
-                    <div class="weather-item"><p>Curah Hujan (1h)</p><b id="rainfall-curah">-</b></div>
-                    <div class="weather-item"><p>Jumlah Tip</p><b id="rainfall-tip">-</b></div>
                 </div>
             </div>
 
@@ -109,20 +112,23 @@
                 <div class="mini-card"><p id="miniLabel1">Distance 1</p><b id="distance1-value">-</b></div>
                 <div class="mini-card"><p id="miniLabel2">Distance 2</p><b id="distance2-value">-</b></div>
             </div>
+
+            <div class="gauge-row" id="gaugeRow"></div>
         </div>
 
+        <!-- Charts -->
         <div class="chart-grid">
             <div class="card grafik">
-                <h3 id="chartTitle">Grafik Tinggi Muka Air (cm)</h3>
+                <h3 id="chartTitle">Tinggi Muka Air</h3>
                 <canvas id="rainChart"></canvas>
             </div>
-    <div class="card grafik" style="display:flex;align-items:center;justify-content:center;height:auto;padding:20px;text-align:center;color:#94a3b8;font-size:14px">
-        <div>
-            <p style="font-size:28px;margin-bottom:6px">📊</p>
-            <p>Lihat analitik prediksi &amp; perbandingan di</p>
-            <a href="/prediksi.html" style="display:inline-block;margin-top:8px;padding:8px 20px;background:#3b82f6;color:white;border-radius:8px;text-decoration:none;font-weight:600">Halaman Analitik Prediksi →</a>
-        </div>
-    </div>
+            <div class="card grafik link-card">
+                <div>
+                    <p style="font-size:24px;margin-bottom:6px">📊</p>
+                    <p>Lihat analitik prediksi &amp; perbandingan</p>
+                    <a href="/prediksi.html">Halaman Analitik →</a>
+                </div>
+            </div>
         </div>
 
     </main>
