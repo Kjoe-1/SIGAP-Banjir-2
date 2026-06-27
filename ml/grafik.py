@@ -57,12 +57,14 @@ def _render(hasil: dict, stempel: str):
             continue
         ada_data = True
         nama = d.get("nama_lokasi", f"Lok {lok}")
-        st = (d.get("sekarang") or {}).get("status", "")
-        ax.plot(x, y, marker="o", linewidth=2, label=f"{nama} — {st}", zorder=2)
+        sek = d.get("sekarang") or {}
+        st = sek.get("status", "")
+        wkt = str(sek.get("waktu_data", ""))[5:16]  # MM-DD HH:MM
+        ax.plot(x, y, marker="o", linewidth=2, label=f"{nama} — {st} (data {wkt})", zorder=2)
         ax.scatter(x, y, c=warna, s=60, zorder=3, edgecolors="white")
 
-    ax.set_title(f"Prediksi Tinggi Air SIGAP Banjir\n{stempel}")
-    ax.set_xlabel("Jam ke depan")
+    ax.set_title(f"Prediksi Tinggi Air SIGAP Banjir\nDibuat: {stempel}")
+    ax.set_xlabel("Jam ke depan (dari pembacaan sensor terakhir)")
     ax.set_ylabel("Tinggi air (cm)")
     ax.set_xticks(JAM_X)
     ax.set_xticklabels(["sekarang", "1j", "3j", "6j", "12j", "24j"])
