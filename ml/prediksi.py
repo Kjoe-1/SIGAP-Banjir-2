@@ -82,9 +82,17 @@ def main():
     out = {"success": True, "lokasi": a.lokasi, "nama_lokasi": cfg["nama"], "tipe": cfg["tipe"], "sumber": a.mode}
     try:
         if a.mode == "db":
-            df = _ambil_db(cfg, a.anchor, a.lookback)
-            if df.empty or df.dropna(subset=["distance_avg"]).empty:
-                print(json.dumps({"success": False, "lokasi": a.lokasi, "message": "Tidak ada data realtime valid dari DB."})); return
+            try:
+                df = _ambil_db(cfg, a.anchor, a.lookback)
+            except Exception as e:
+                # KONEKSI DB gagal (env/jaringan/pymysql) -> jaring pengaman: pakai demo,
+                # ditandai jelas supaya frontend bisa kasih label "data demo".
+                df = pd.read_csv(os.path.join(base, cfg["demo"])); df["jam"] = pd.to_datetime(df["jam"])
+                out["sumber"] = "demo"; out["fallback_demo"] = True; out["alasan_fallback"] = str(e)
+            else:
+                # DB konek tapi tidak ada data terbaru (sensor mati) -> jujur offline.
+                if df.empty or df.dropna(subset=["distance_avg"]).empty:
+                    print(json.dumps({"success": False, "lokasi": a.lokasi, "message": "Tidak ada data realtime valid dari DB."})); return
         else:
             df = pd.read_csv(os.path.join(base, cfg["demo"])); df["jam"] = pd.to_datetime(df["jam"])
     except Exception as e:

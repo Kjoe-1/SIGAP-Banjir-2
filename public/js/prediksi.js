@@ -65,7 +65,9 @@ async function muatPrediksi() {
     const p1 = pred ? pred["1"] : null;
 
     document.getElementById("metricStatus").innerText = skrg.status;
-    document.getElementById("metricStatusDesc").innerText = data.catatan || "Kondisi Normal";
+    document.getElementById("metricStatusDesc").innerText = data.fallback_demo
+      ? "⚠️ DATA DEMO (koneksi sensor gagal)"
+      : (data.catatan || "Kondisi Normal");
     document.getElementById("metricTinggi").innerText = skrg.tinggi_air_cm != null ? skrg.tinggi_air_cm : "-";
     document.getElementById("metricTrend").innerText = (skrg.distance_cm != null ? "Jarak: " + skrg.distance_cm + " cm" : "-");
 
