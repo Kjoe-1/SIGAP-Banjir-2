@@ -160,15 +160,30 @@ def _render_realtime(lok: int, horizon: int, pred_out: dict) -> bytes | None:
     pr = pred_out.get("prediksi") or {}
     amb = pred_out.get("ambang") or {}
 
-    kat = ["Sekarang"]
+    # Waktu acuan = data terakhir; tiap horizon ditampilkan beserta JAM AKTUALnya
+    # (saran user: "+12 jam" langsung kelihatan jam berapa).
+    from datetime import datetime, timedelta
+    try:
+        base_t = datetime.strptime(str(s.get("waktu_data"))[:19], "%Y-%m-%d %H:%M:%S")
+    except Exception:
+        base_t = None
+
+    def _lbl(prefix, off):
+        return prefix if base_t is None else f"{prefix}\n{(base_t + timedelta(hours=off)):%H:%M}"
+
+    kat = [_lbl("Sekarang", 0)]
     nilai = [s.get("tinggi_air_cm")]
     status = [s.get("status")]
+    sel_kat = None
     for h in (1, 3, 6, 12, 24):
         v = (pr.get(str(h)) or {}).get("tinggi_air_cm")
         if v is not None:
-            kat.append(f"+{h} jam")
+            lbl = _lbl(f"+{h}j", h)
+            kat.append(lbl)
             nilai.append(v)
             status.append((pr.get(str(h)) or {}).get("status"))
+            if h == horizon:
+                sel_kat = lbl
     if len(nilai) <= 1 or nilai[0] is None:
         return None
 
@@ -177,9 +192,8 @@ def _render_realtime(lok: int, horizon: int, pred_out: dict) -> bytes | None:
     bars = ax.bar(kat, nilai, color=warna, edgecolor="white", zorder=2)
 
     # Tandai horizon yang dipilih user.
-    sel = f"+{horizon} jam"
     for b, k in zip(bars, kat):
-        if k == sel:
+        if k == sel_kat:
             b.set_edgecolor("#2c3e50")
             b.set_linewidth(3)
     # Label nilai di atas tiap bar.
@@ -195,6 +209,7 @@ def _render_realtime(lok: int, horizon: int, pred_out: dict) -> bytes | None:
 
     ax.set_title(f"{pred_out.get('nama_lokasi', '')} — Perbandingan Prediksi Tinggi Air")
     ax.set_ylabel("Tinggi air (cm)")
+    ax.set_xlabel("Waktu prediksi (jam aktual dari data terakhir)" if base_t else "Horizon prediksi")
     ymax = max([v for v in nilai if v is not None] + [hw or 0, hs or 0]) * 1.18
     ax.set_ylim(0, ymax)
     ax.grid(True, axis="y", alpha=0.3)

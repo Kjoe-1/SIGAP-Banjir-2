@@ -136,8 +136,10 @@ def pasang_penjadwal(bot, interval_menit: int | None = None) -> AsyncIOScheduler
     """Buat & start scheduler di event loop yang sedang berjalan."""
     menit = interval_menit or INTERVAL_MENIT
     sched = AsyncIOScheduler()
+    # Tanpa next_run_time=None (itu malah membuat job PAUSED/tak pernah jalan).
+    # Trigger interval otomatis menjadwalkan run pertama = sekarang + interval.
     sched.add_job(cek_dan_broadcast, "interval", minutes=menit,
-                  args=[bot], id="cek_banjir", next_run_time=None)
+                  args=[bot], id="cek_banjir")
     sched.start()
     log.info("[penjadwal] aktif, cek tiap %d menit (mode=%s).", menit, MODE)
     return sched
