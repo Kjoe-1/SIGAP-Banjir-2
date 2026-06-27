@@ -178,11 +178,11 @@ async def handle_start(message: Message):
     baru = await crud.daftar_user(chat_id, username)
     sambutan = (
         "\U0001F30A *SIGAP Banjir* — Sistem prediksi banjir di Surabaya.\n\n"
-        "Bot ini memantau tinggi muka air dari sensor IoT dan memprediksi potensi "
-        "banjir untuk lokasi tertentu di Surabaya:\n"
-        "\U0001F4CD Universitas Hang Tuah\n"
-        "\U0001F4CD Rumah Pompa Kalibokor\n"
-        "\U0001F4CD Rumah Pompa Pucanganom\n\n"
+        "Bot ini memantau *tinggi muka air (cm)* dari sensor IoT, lalu memprediksi "
+        "potensi banjir di lokasi berikut:\n"
+        "\U0001F4CD Universitas Hang Tuah — sungai\n"
+        "\U0001F4CD Rumah Pompa Kalibokor — saluran/rumah pompa\n"
+        "\U0001F4CD Rumah Pompa Pucanganom — saluran/rumah pompa\n\n"
         "Yang bisa kamu lakukan:\n"
         "\U0001F52E *Prediksi Banjir* — pilih lokasi & rentang waktu (1–24 jam), "
         "lihat tinggi air sekarang + grafik prediksi.\n"
