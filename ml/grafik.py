@@ -181,35 +181,58 @@ def _render_realtime(lok: int, horizon: int, pred_out: dict) -> bytes | None:
     def _lbl(prefix, off):
         return prefix if base_t is None else f"{prefix}\n{(base_t + timedelta(hours=off)):%H:%M}"
 
-    kat = [_lbl("Sekarang", 0)]
-    nilai = [s.get("tinggi_air_cm")]
-    status = [s.get("status")]
-    sel_kat = None
+    # Urutan bar: histori lampau (aktual) -> Sekarang -> prediksi ke depan.
+    histori = pred_out.get("histori") or []
+    lampau = histori[:-1] if len(histori) > 1 else []  # entri terakhir = "sekarang"
+
+    kat, nilai, status, jenis = [], [], [], []
+    for hh in lampau:
+        v = hh.get("tinggi_air_cm")
+        if v is None:
+            continue
+        kat.append(str(hh.get("jam"))[11:16])  # HH:MM
+        nilai.append(v)
+        status.append(hh.get("status"))
+        jenis.append("lampau")
+
+    kat.append(_lbl("Sekarang", 0))
+    nilai.append(s.get("tinggi_air_cm"))
+    status.append(s.get("status"))
+    jenis.append("sekarang")
+    idx_now = len(kat) - 1
+
+    sel_idx = None
     for h in (1, 3, 6, 12, 24):
         v = (pr.get(str(h)) or {}).get("tinggi_air_cm")
         if v is not None:
-            lbl = _lbl(f"+{h}j", h)
-            kat.append(lbl)
+            kat.append(_lbl(f"+{h}j", h))
             nilai.append(v)
             status.append((pr.get(str(h)) or {}).get("status"))
+            jenis.append("prediksi")
             if h == horizon:
-                sel_kat = lbl
-    if len(nilai) <= 1 or nilai[0] is None:
+                sel_idx = len(kat) - 1
+    if nilai[idx_now] is None or sum(1 for n in nilai if n is not None) <= 1:
         return None
 
     warna = [WARNA.get(st, "#95a5a6") for st in status]
-    fig, ax = plt.subplots(figsize=(9, 5))
-    bars = ax.bar(kat, nilai, color=warna, edgecolor="white", zorder=2)
+    fig, ax = plt.subplots(figsize=(11, 5))
+    x = list(range(len(kat)))
+    bars = ax.bar(x, nilai, color=warna, edgecolor="white", zorder=2)
 
-    # Tandai horizon yang dipilih user.
-    for b, k in zip(bars, kat):
-        if k == sel_kat:
+    for i, (b, jn) in enumerate(zip(bars, jenis)):
+        if jn == "lampau":            # aktual lampau: hatched + agak transparan
+            b.set_alpha(0.55)
+            b.set_hatch("//")
+        if i == sel_idx:              # horizon yang dipilih: border tebal
             b.set_edgecolor("#2c3e50")
             b.set_linewidth(3)
-    # Label nilai di atas tiap bar.
     for b, v in zip(bars, nilai):
-        ax.text(b.get_x() + b.get_width() / 2, v, f"{v:g}",
-                ha="center", va="bottom", fontsize=9)
+        if v is not None:
+            ax.text(b.get_x() + b.get_width() / 2, v, f"{v:g}",
+                    ha="center", va="bottom", fontsize=8)
+
+    # Garis pemisah "lampau | prediksi" (tepat setelah Sekarang).
+    ax.axvline(idx_now + 0.5, color="#7f8c8d", ls=":", lw=1.2)
 
     hw, hs = amb.get("waspada"), amb.get("siaga")
     if hw is not None:
@@ -217,18 +240,21 @@ def _render_realtime(lok: int, horizon: int, pred_out: dict) -> bytes | None:
     if hs is not None:
         ax.axhline(hs, color="#e74c3c", ls="--", lw=1.2, label=f"Ambang SIAGA ({hs:g} cm)")
 
-    ax.set_title(f"{pred_out.get('nama_lokasi', '')} — Perbandingan Prediksi Tinggi Air")
+    ax.set_xticks(x)
+    ax.set_xticklabels(kat, fontsize=8)
+    ax.set_title(f"{pred_out.get('nama_lokasi', '')} — Tren & Prediksi Tinggi Air")
     ax.set_ylabel("Tinggi air (cm)")
-    ax.set_xlabel("Waktu prediksi (jam aktual dari data terakhir)" if base_t else "Horizon prediksi")
+    ax.set_xlabel("← aktual (lampau)   |   Sekarang   |   prediksi →")
     ymax = max([v for v in nilai if v is not None] + [hw or 0, hs or 0]) * 1.18
     ax.set_ylim(0, ymax)
     ax.grid(True, axis="y", alpha=0.3)
 
-    leg_status = [Patch(color=WARNA["AMAN"], label="AMAN"),
-                  Patch(color=WARNA["WASPADA"], label="WASPADA"),
-                  Patch(color=WARNA["SIAGA"], label="SIAGA")]
+    leg = [Patch(color=WARNA["AMAN"], label="AMAN"),
+           Patch(color=WARNA["WASPADA"], label="WASPADA"),
+           Patch(color=WARNA["SIAGA"], label="SIAGA"),
+           Patch(facecolor="#bbbbbb", hatch="//", alpha=0.55, label="Aktual (lampau)")]
     h_line, _ = ax.get_legend_handles_labels()
-    ax.legend(handles=leg_status + h_line, fontsize=8, ncol=2)
+    ax.legend(handles=leg + h_line, fontsize=8, ncol=2)
 
     fig.tight_layout()
     buf = io.BytesIO()

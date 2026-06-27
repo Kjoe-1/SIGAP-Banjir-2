@@ -151,6 +151,15 @@ def main():
     out["prediksi"] = pred
     out["peringatan"] = peringatan or {"ada": False, "status": "AMAN", "dalam_jam": None, "pesan": "Aman"}
     out["catatan"] = ("Forecasting andal (badan air alami, hujan)." if cfg["tipe"]=="forecast_hujan" else "Rumah pompa: forecasting INDIKATIF.")
+    # Histori beberapa jam terakhir (untuk konteks tren di chart): aktual s/d "sekarang".
+    hist = []
+    dft = df.dropna(subset=["distance_avg"])
+    dft = dft[dft["jam"] <= jam].tail(7)
+    for _, r in dft.iterrows():
+        dd = float(r["distance_avg"])
+        hist.append({"jam": str(r["jam"]), "tinggi_air_cm": round(ref - dd, 1),
+                     "status": C.status_dari_distance(dd, t_was, t_sia)})
+    out["histori"] = hist
     print(json.dumps(out, default=str))
 if __name__ == "__main__":
     main()
