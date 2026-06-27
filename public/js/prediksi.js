@@ -51,7 +51,14 @@ async function muatPrediksi() {
   try {
     const res = await fetch("/api/prediksi?lokasi=" + activeLokasi);
     const data = await res.json();
-    if (!data.success) return;
+    if (!data.success) {
+      document.getElementById("metricStatus").innerText = "OFFLINE";
+      document.getElementById("metricStatusDesc").innerText = "Sensor offline — data realtime belum tersedia";
+      document.getElementById("metricTinggi").innerText = "-";
+      const p1el = document.getElementById("metricPred1");
+      if (p1el) p1el.innerText = "-";
+      return;
+    }
 
     const skrg = data.sekarang;
     const pred = data.prediksi;

@@ -10,11 +10,13 @@ except ImportError:
 
 STATUS_ORDER = ["AMAN", "WASPADA", "SIAGA"]
 
-# Kredensial dibaca dari .env (lihat .env.example). Tidak ada nilai rahasia di source.
-DB_HOST = os.environ.get("DB_HOST", "")
-DB_USER = os.environ.get("DB_USER", "")
-DB_PASS = os.environ.get("DB_PASS", "")
-DB_PORT = int(os.environ.get("DB_PORT", "3306"))
+# Kredensial dibaca dari env (lihat .env.example). Tidak ada nilai rahasia di source.
+# Terima DB_* (bot) maupun SENSOR_DB_* (dipakai server.js website) agar 1 set env
+# var cukup untuk dua-duanya (mis. di Railway).
+DB_HOST = os.environ.get("DB_HOST") or os.environ.get("SENSOR_DB_HOST", "")
+DB_USER = os.environ.get("DB_USER") or os.environ.get("SENSOR_DB_USER", "")
+DB_PASS = os.environ.get("DB_PASS") or os.environ.get("SENSOR_DB_PASS", "")
+DB_PORT = int(os.environ.get("DB_PORT") or os.environ.get("SENSOR_DB_PORT") or "3306")
 JAM_HISTORI = 48
 LOKASI = {
     1: {"nama": "Pucanganom", "tipe": "klasifikasi",    "meta":  "model/lok3_meta.json", "demo": "data/lok3_demo.csv", "demo_jam": None,                 "db": "dbpvwemonbaru2", "dist_min": 50,  "dist_max": 600},

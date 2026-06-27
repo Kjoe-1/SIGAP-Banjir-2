@@ -187,7 +187,7 @@ const FE2ML_MAP = { 1: 1, 2: 2, 3: 3 };
 app.get("/api/prediksi", (req, res) => {
   const feLokasi = parseInt(req.query.lokasi) || 3;
   const mLokasi = FE2ML_MAP[feLokasi] || 1;
-  const args = ["prediksi.py", "--lokasi", String(mLokasi), "--mode", "demo"];
+  const args = ["prediksi.py", "--lokasi", String(mLokasi), "--mode", "db", "--anchor", "latest", "--lookback", "336"];
   execFile("python", args, { cwd: ML_DIR, timeout: 30000 }, (err, stdout, stderr) => {
     if (err) return res.status(500).json({ success: false, message: "Gagal prediksi", stderr: stderr });
     try { const d = JSON.parse(stdout); d.fe_lokasi = feLokasi; res.json(d); }
