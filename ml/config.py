@@ -1,8 +1,12 @@
 import os
-from dotenv import load_dotenv
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-load_dotenv(os.path.join(BASE, ".env"))
+# dotenv opsional: kalau belum terpasang, pakai env var sistem (tidak crash).
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(BASE, ".env"))
+except ImportError:
+    pass
 
 STATUS_ORDER = ["AMAN", "WASPADA", "SIAGA"]
 
