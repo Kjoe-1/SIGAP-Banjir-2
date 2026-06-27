@@ -1,0 +1,33 @@
+# systemd service untuk Bot Telegram SIGAP Banjir (jalan 24/7, terpisah dari website).
+#
+# Cara pasang (Linux / VPS):
+#   1. Sesuaikan User, WorkingDirectory, dan ExecStart (path python) di bawah.
+#   2. sudo cp sigap-bot.service /etc/systemd/system/sigap-bot.service
+#   3. sudo systemctl daemon-reload
+#   4. sudo systemctl enable --now sigap-bot      # start + auto-start saat boot
+#
+# Perintah harian:
+#   sudo systemctl status sigap-bot      # cek hidup/mati
+#   sudo systemctl restart sigap-bot     # setelah edit kode
+#   sudo journalctl -u sigap-bot -f      # lihat log realtime
+
+[Unit]
+Description=Bot Telegram SIGAP Banjir
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# GANTI: user Linux di server
+User=GANTI_USER
+# GANTI: path folder ml/ di server
+WorkingDirectory=/path/ke/SIGAP-Banjir-2/ml
+# GANTI: path python di dalam venv (lihat DEPLOY.md langkah 2)
+ExecStart=/path/ke/SIGAP-Banjir-2/.venv/bin/python bot.py
+Restart=always
+RestartSec=10
+# Pastikan output langsung tampil di journalctl
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

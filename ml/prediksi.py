@@ -49,17 +49,21 @@ def _buat_fitur_lok1(df):
     df["jam_hari"]    = df["jam"].dt.hour
     df["humi"]        = df["humi_avg"]
     return df
-def _ambil_db(cfg):
-    conn = _db_conn(cfg["db"]); J = f"{C.JAM_HISTORI} HOUR"
+def _ambil_db(cfg, anchor="now", lookback=None):
+    conn = _db_conn(cfg["db"]); J = f"{lookback or C.JAM_HISTORI} HOUR"
+    # anchor="now": jendela dihitung dari waktu server (default, untuk alert realtime).
+    # anchor="latest": jendela dari data TERAKHIR yang ada (mis. saat sensor sempat offline).
+    def batas(tbl, kol):
+        return f"NOW() - INTERVAL {J}" if anchor == "now" else f"(SELECT MAX({kol}) FROM {tbl}) - INTERVAL {J}"
     try:
         if cfg["tipe"] == "forecast_hujan":
-            air = _query(conn, f"SELECT DATE_FORMAT(time,'%Y-%m-%d %H:00:00') AS jam, AVG(distance) AS distance_avg, MIN(distance) AS distance_min FROM esp3 WHERE time >= NOW() - INTERVAL {J} GROUP BY jam ORDER BY jam")
-            cuaca = _query(conn, f"SELECT DATE_FORMAT(time,'%Y-%m-%d %H:00:00') AS jam, MAX(rain1h) AS rain1h_max, MAX(rain24h) AS rain24h_max, AVG(humi) AS humi_avg FROM esp2 WHERE time >= NOW() - INTERVAL {J} GROUP BY jam ORDER BY jam")
+            air = _query(conn, f"SELECT DATE_FORMAT(time,'%Y-%m-%d %H:00:00') AS jam, AVG(distance) AS distance_avg, MIN(distance) AS distance_min FROM esp3 WHERE time >= {batas('esp3','time')} GROUP BY jam ORDER BY jam")
+            cuaca = _query(conn, f"SELECT DATE_FORMAT(time,'%Y-%m-%d %H:00:00') AS jam, MAX(rain1h) AS rain1h_max, MAX(rain24h) AS rain24h_max, AVG(humi) AS humi_avg FROM esp2 WHERE time >= {batas('esp2','time')} GROUP BY jam ORDER BY jam")
             df = pd.merge(air, cuaca, on="jam", how="inner")
             df = df[df.distance_avg.between(cfg["dist_min"], cfg["dist_max"]) & df.distance_min.between(cfg["dist_min"], cfg["dist_max"])].reset_index(drop=True)
             return _buat_fitur_lok1(df)
         else:
-            df = _query(conn, f"SELECT DATE_FORMAT(waktu,'%Y-%m-%d %H:00:00') AS jam, AVG(distance2) AS distance_avg FROM esp1 WHERE waktu >= NOW() - INTERVAL {J} GROUP BY jam ORDER BY jam")
+            df = _query(conn, f"SELECT DATE_FORMAT(waktu,'%Y-%m-%d %H:00:00') AS jam, AVG(distance2) AS distance_avg FROM esp1 WHERE waktu >= {batas('esp1','waktu')} GROUP BY jam ORDER BY jam")
             df.loc[~df.distance_avg.between(cfg["dist_min"], cfg["dist_max"]), "distance_avg"] = np.nan
             return df
     finally:
@@ -68,13 +72,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--lokasi", type=int, required=True, choices=[1, 2, 3])
     ap.add_argument("--mode", default="demo", choices=["demo", "db"])
+    ap.add_argument("--anchor", default="now", choices=["now", "latest"],
+                    help="now=jendela dari waktu server; latest=dari data terakhir yang ada")
+    ap.add_argument("--lookback", type=int, default=None,
+                    help="override jendela jam (default pakai config JAM_HISTORI)")
     ap.add_argument("--jam", default=None)
     a = ap.parse_args()
     cfg = C.LOKASI[a.lokasi]; base = C.BASE
     out = {"success": True, "lokasi": a.lokasi, "nama_lokasi": cfg["nama"], "tipe": cfg["tipe"], "sumber": a.mode}
     try:
         if a.mode == "db":
-            df = _ambil_db(cfg)
+            df = _ambil_db(cfg, a.anchor, a.lookback)
             if df.empty or df.dropna(subset=["distance_avg"]).empty:
                 print(json.dumps({"success": False, "lokasi": a.lokasi, "message": "Tidak ada data realtime valid dari DB."})); return
         else:
@@ -86,14 +94,24 @@ def main():
         d = df.dropna(subset=["distance_avg"])
         row = d.iloc[-1] if (a.mode == "db" or a.jam is None) else d[d.jam == pd.to_datetime(a.jam)].iloc[-1]
         dist = float(row["distance_avg"]); ref = meta["ref"]
-        st = C.status_dari_distance(dist, meta["t_waspada_dist"], meta["t_siaga_dist"])
+        t_was_d, t_sia_d = meta["t_waspada_dist"], meta["t_siaga_dist"]
+        # Override ambang dengan tinggi air resmi bila tersedia (config.AMBANG_TINGGI).
+        _ov = C.AMBANG_TINGGI.get(a.lokasi)
+        if _ov:
+            t_was_d, t_sia_d = ref - _ov["waspada"], ref - _ov["siaga"]
+        st = C.status_dari_distance(dist, t_was_d, t_sia_d)
         out["sekarang"] = {"waktu_data": str(row["jam"]), "distance_cm": round(dist,1), "tinggi_air_cm": round(ref-dist,1), "status": st}
+        out["ambang"] = {"waspada": round(ref - t_was_d, 1), "siaga": round(ref - t_sia_d, 1)}
         out["prediksi"] = {str(h): {"jam_ke_depan": h, "tinggi_air_cm": None, "status": "tidak_tersedia", "confidence": None, "keandalan": "tidak_tersedia"} for h in HOR}
         out["peringatan"] = {"ada": st!="AMAN", "status": st, "dalam_jam": 0, "pesan": (f"Status SAAT INI: {st}" if st!="AMAN" else "Aman")}
         out["catatan"] = "Rumah pompa, data ~10 hari -> hanya klasifikasi status saat ini."
         print(json.dumps(out, default=str)); return
     b = pickle.load(open(os.path.join(base, cfg["model"]), "rb"))
     ref, t_was, t_sia = b["ref"], b["t_waspada_dist"], b["t_siaga_dist"]
+    # Override ambang dengan tinggi air resmi bila tersedia (lihat config.AMBANG_TINGGI).
+    _ov = C.AMBANG_TINGGI.get(a.lokasi)
+    if _ov:
+        t_was, t_sia = ref - _ov["waspada"], ref - _ov["siaga"]
     jam = df["jam"].iloc[-1] if a.mode == "db" else (pd.to_datetime(a.jam) if a.jam else (pd.to_datetime(cfg["demo_jam"]) if cfg["demo_jam"] else df["jam"].iloc[-1]))
     if cfg["tipe"] == "forecast_hujan":
         row = df[df.jam == jam]
@@ -111,6 +129,7 @@ def main():
         return
     st_now = C.status_dari_distance(dist_now, t_was, t_sia)
     out["sekarang"] = {"waktu_data": str(jam), "distance_cm": round(dist_now,1), "tinggi_air_cm": round(ref-dist_now,1), "status": st_now}
+    out["ambang"] = {"waspada": round(ref - t_was, 1), "siaga": round(ref - t_sia, 1)}
     pred = {}; peringatan = None
     if x is None:
         for h in HOR:

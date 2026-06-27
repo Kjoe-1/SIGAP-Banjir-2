@@ -1,3 +1,11 @@
 pandas
 numpy
 scikit-learn
+python-dotenv
+sqlalchemy>=2.0
+aiosqlite
+aiomysql
+aiogram>=3
+apscheduler>=3
+matplotlib
+pymysql
