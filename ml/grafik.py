@@ -81,13 +81,15 @@ async def perbarui_chart(hasil: dict | None = None):
     Buat ulang current_prediction.png. Bila `hasil` None, ambil sendiri prediksi
     untuk semua lokasi (dipakai saat startup). Dipanggil scheduler tiap jam.
     """
-    import time
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
 
     import penjadwal  # impor lokal untuk hindari circular import
 
     if hasil is None:
         hasil = {lok: await penjadwal.jalankan_prediksi(lok) for lok in penjadwal.LOKASI}
-    stempel = time.strftime("%Y-%m-%d %H:%M:%S")
+    # Pakai WIB (Asia/Jakarta) agar cocok dgn data sensor, bukan zona server (UTC).
+    stempel = datetime.now(ZoneInfo("Asia/Jakarta")).strftime("%Y-%m-%d %H:%M:%S WIB")
     await asyncio.to_thread(_render, hasil, stempel)
     log.info("[grafik] %s diperbarui (%s).", os.path.basename(CHART_PATH), stempel)
 

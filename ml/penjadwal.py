@@ -18,6 +18,7 @@ import logging
 import os
 import sys
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -83,7 +84,9 @@ def _data_segar(d: dict) -> bool:
         t = datetime.strptime(str(w)[:19], "%Y-%m-%d %H:%M:%S")
     except Exception:
         return False
-    umur_jam = (datetime.now() - t).total_seconds() / 3600
+    # "Sekarang" dalam WIB (cocok dgn data sensor), bukan zona server (UTC).
+    now = datetime.now(ZoneInfo("Asia/Jakarta")).replace(tzinfo=None)
+    umur_jam = (now - t).total_seconds() / 3600
     return 0 <= umur_jam <= MAX_UMUR_NOTIF_JAM
 
 
