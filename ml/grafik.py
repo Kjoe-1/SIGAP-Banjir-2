@@ -57,7 +57,8 @@ def _render(hasil: dict, stempel: str):
             continue
         ada_data = True
         nama = d.get("nama_lokasi", f"Lok {lok}")
-        ax.plot(x, y, marker="o", linewidth=2, label=nama, zorder=2)
+        st = (d.get("sekarang") or {}).get("status", "")
+        ax.plot(x, y, marker="o", linewidth=2, label=f"{nama} — {st}", zorder=2)
         ax.scatter(x, y, c=warna, s=60, zorder=3, edgecolors="white")
 
     ax.set_title(f"Prediksi Tinggi Air SIGAP Banjir\n{stempel}")
@@ -67,7 +68,12 @@ def _render(hasil: dict, stempel: str):
     ax.set_xticklabels(["sekarang", "1j", "3j", "6j", "12j", "24j"])
     ax.grid(True, alpha=0.3)
     if ada_data:
-        ax.legend()
+        from matplotlib.patches import Patch
+        status_leg = [Patch(color=WARNA["AMAN"], label="AMAN"),
+                      Patch(color=WARNA["WASPADA"], label="WASPADA"),
+                      Patch(color=WARNA["SIAGA"], label="SIAGA")]
+        h_line, _ = ax.get_legend_handles_labels()
+        ax.legend(handles=h_line + status_leg, fontsize=8, ncol=2)
     else:
         ax.text(0.5, 0.5, "Tidak ada data prediksi", ha="center", va="center",
                 transform=ax.transAxes)
