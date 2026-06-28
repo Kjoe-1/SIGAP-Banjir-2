@@ -142,6 +142,18 @@ def teks_ambang() -> str:
     return "\n".join(baris)
 
 
+def status_sensor_singkat() -> str:
+    """Ringkasan status sensor terkini (dari _sensor_state scheduler) untuk /start."""
+    state = penjadwal._sensor_state
+    if not state:
+        return ""
+    offline = [penjadwal.NAMA_LOKASI.get(l, f"Lok {l}") for l, s in state.items() if s == "offline"]
+    if offline:
+        return ("⚠️ *Sensor sedang offline:* " + ", ".join(offline)
+                + " — prediksi memakai data terakhir.\n\n")
+    return "🟢 Semua sensor aktif.\n\n"
+
+
 def keyboard_jam(lok: int) -> InlineKeyboardMarkup:
     """Pilihan horizon (jam) setelah lokasi dipilih."""
     tombol = [InlineKeyboardButton(text=f"{h} jam", callback_data=f"predjam:{lok}:{h}")
@@ -223,6 +235,7 @@ async def handle_start(message: Message):
         "\U0001F4CD Universitas Hang Tuah — sungai\n"
         "\U0001F4CD Rumah Pompa Kalibokor — saluran/rumah pompa\n"
         "\U0001F4CD Rumah Pompa Pucanganom — saluran/rumah pompa\n\n"
+        + status_sensor_singkat()
         + teks_ambang() + "\n\n"
         "Yang bisa kamu lakukan:\n"
         "\U0001F52E *Prediksi Banjir* — pilih lokasi & rentang waktu (1–24 jam), "
@@ -396,7 +409,11 @@ async def main():
         BotCommand(command="settings", description="Atur horizon notifikasi"),
         BotCommand(command="grafik", description="Grafik ringkasan terbaru"),
     ])
-    await grafik.perbarui_chart()  # chart awal agar /grafik langsung tersedia
+    # Ambil prediksi awal sekali: untuk chart + baseline status sensor (silent).
+    hasil_awal = {lok: await penjadwal.jalankan_prediksi(lok) for lok in penjadwal.LOKASI}
+    for lok, d in hasil_awal.items():
+        await penjadwal._cek_transisi_sensor(bot, lok, d)  # set baseline, tidak broadcast
+    await grafik.perbarui_chart(hasil_awal)
     penjadwal.pasang_penjadwal(bot)  # interval dari .env (INTERVAL_MENIT), default 60
     log.info("Bot SIGAP Banjir mulai polling...")
     await dp.start_polling(bot)
