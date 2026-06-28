@@ -117,6 +117,23 @@ def teks_lokasi(lok: int) -> str:
     )
 
 
+def teks_ambang() -> str:
+    """Penjelasan arti status + ambang tiap lokasi (dinamis dari config.AMBANG_TINGGI)."""
+    baris = [
+        "\U0001F4CA *Arti status:*",
+        "🟢 *AMAN* — di bawah ambang waspada (normal)",
+        "🟡 *WASPADA* — mendekati batas, mulai siaga",
+        "🔴 *SIAGA* — capai ambang siaga, potensi banjir",
+        "",
+        "Ambang beda tiap lokasi (dimensi saluran beda):",
+    ]
+    for lok in LOKASI_PREDIKSI:
+        amb = config.AMBANG_TINGGI.get(lok)
+        if amb:
+            baris.append(f"• {LOKASI_INFO[lok]['nama']}: WASPADA ≥{amb['waspada']} / SIAGA ≥{amb['siaga']} cm")
+    return "\n".join(baris)
+
+
 def keyboard_jam(lok: int) -> InlineKeyboardMarkup:
     """Pilihan horizon (jam) setelah lokasi dipilih."""
     tombol = [InlineKeyboardButton(text=f"{h} jam", callback_data=f"predjam:{lok}:{h}")
@@ -183,6 +200,7 @@ async def handle_start(message: Message):
         "\U0001F4CD Universitas Hang Tuah — sungai\n"
         "\U0001F4CD Rumah Pompa Kalibokor — saluran/rumah pompa\n"
         "\U0001F4CD Rumah Pompa Pucanganom — saluran/rumah pompa\n\n"
+        + teks_ambang() + "\n\n"
         "Yang bisa kamu lakukan:\n"
         "\U0001F52E *Prediksi Banjir* — pilih lokasi & rentang waktu (1–24 jam), "
         "lihat tinggi air sekarang + grafik prediksi.\n"
