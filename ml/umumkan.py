@@ -16,15 +16,25 @@ import os
 from aiogram import Bot
 
 import crud
+import penjadwal
 
-PESAN = (
-    "⚠️ *Pemberitahuan — Sensor sedang OFFLINE*\n\n"
-    "Saat ini sensor IoT di lapangan sedang tidak mengirim data. Jadi prediksi "
-    "di bot menampilkan *data terakhir yang tersedia*, bukan kondisi realtime.\n\n"
-    "Notifikasi peringatan banjir otomatis akan *aktif kembali* begitu sensor "
-    "online lagi. Kamu juga akan otomatis diberi tahu saat sensor sudah pulih.\n\n"
-    "Terima kasih sudah mencoba bot SIGAP Banjir! \U0001F64F"
-)
+
+async def susun_pesan() -> str:
+    """Bangun pesan status sensor PER LOKASI (cek realtime tiap lokasi)."""
+    baris = []
+    for lok in penjadwal.LOKASI:
+        d = await penjadwal.jalankan_prediksi(lok)
+        st = penjadwal._sensor_status(d)
+        ikon, ket = ("🟢", "aktif") if st == "online" else ("🔴", "offline")
+        baris.append(f"{ikon} {penjadwal.NAMA_LOKASI.get(lok, f'Lok {lok}')} — {ket}")
+    return (
+        "⚠️ *Pemberitahuan Status Sensor — SIGAP Banjir*\n\n"
+        "Status sensor saat ini:\n" + "\n".join(baris) + "\n\n"
+        "Untuk lokasi yang *offline*, prediksi menampilkan *data terakhir* "
+        "(bukan kondisi realtime). Data & notifikasi otomatis pulih begitu sensor "
+        "online lagi — kamu juga akan diberi tahu otomatis saat itu.\n\n"
+        "Terima kasih sudah mencoba bot SIGAP Banjir! \U0001F64F"
+    )
 
 
 async def main():
@@ -32,6 +42,8 @@ async def main():
     if not token:
         raise SystemExit("TELEGRAM_TOKEN belum diisi di .env")
     bot = Bot(token)
+    PESAN = await susun_pesan()
+    print("Pesan yang akan dikirim:\n" + PESAN + "\n" + "-" * 40)
     ids = await crud.semua_chat_ids()
     ok = 0
     for cid in ids:

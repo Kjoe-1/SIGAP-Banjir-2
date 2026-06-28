@@ -143,15 +143,21 @@ def teks_ambang() -> str:
 
 
 def status_sensor_singkat() -> str:
-    """Ringkasan status sensor terkini (dari _sensor_state scheduler) untuk /start."""
+    """Status sensor terkini PER LOKASI (dari _sensor_state scheduler) untuk /start."""
     state = penjadwal._sensor_state
     if not state:
         return ""
-    offline = [penjadwal.NAMA_LOKASI.get(l, f"Lok {l}") for l, s in state.items() if s == "offline"]
-    if offline:
-        return ("⚠️ *Sensor sedang offline:* " + ", ".join(offline)
-                + " — prediksi memakai data terakhir.\n\n")
-    return "🟢 Semua sensor aktif.\n\n"
+    if all(s == "online" for s in state.values()):
+        return "\U0001F4E1 *Status sensor:* 🟢 semua aktif.\n\n"
+    baris = ["\U0001F4E1 *Status sensor:*"]
+    for lok in LOKASI_PREDIKSI:
+        s = state.get(lok)
+        if s is None:
+            continue
+        ikon, ket = ("🟢", "aktif") if s == "online" else ("🔴", "offline")
+        baris.append(f"{ikon} {LOKASI_INFO[lok]['nama']} — {ket}")
+    baris.append("_(yang offline: prediksi pakai data terakhir)_")
+    return "\n".join(baris) + "\n\n"
 
 
 def keyboard_jam(lok: int) -> InlineKeyboardMarkup:
