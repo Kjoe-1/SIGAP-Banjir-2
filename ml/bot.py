@@ -125,12 +125,18 @@ def teks_ambang() -> str:
         "🟡 *WASPADA* — mendekati batas, mulai siaga",
         "🔴 *SIAGA* — capai ambang siaga, potensi banjir",
         "",
-        "Ambang beda tiap lokasi (dimensi saluran beda):",
+        "Ambang beda tiap lokasi:",
     ]
     for lok in LOKASI_PREDIKSI:
         amb = config.AMBANG_TINGGI.get(lok)
         if amb:
             baris.append(f"• {LOKASI_INFO[lok]['nama']}: WASPADA ≥{amb['waspada']} / SIAGA ≥{amb['siaga']} cm")
+    baris.append("")
+    baris.append(
+        "ℹ️ UHT (sungai): ambang dari kapasitas sungai. "
+        "Rumah pompa: ambang *operasional* — saat air capai batas itu, wajib segera "
+        "dipompa/drainase (kalau lewat, banjir di pemukiman)."
+    )
     return "\n".join(baris)
 
 
