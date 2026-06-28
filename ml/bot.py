@@ -16,6 +16,8 @@ import json
 import logging
 import os
 import sys
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import os.path as _osp
 
@@ -149,6 +151,19 @@ def keyboard_jam(lok: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=baris)
 
 
+def badge_sensor(waktu_data) -> str:
+    """Badge status sensor dari umur data (pakai WIB, cocok dgn timestamp DB)."""
+    try:
+        t = datetime.strptime(str(waktu_data)[:19], "%Y-%m-%d %H:%M:%S")
+    except Exception:
+        return ""
+    now_wib = datetime.now(ZoneInfo("Asia/Jakarta")).replace(tzinfo=None)
+    umur = (now_wib - t).total_seconds() / 3600
+    if umur <= penjadwal.SENSOR_OFFLINE_JAM:
+        return "🟢 Sensor: aktif"
+    return f"🔴 Sensor: offline (data {umur:.0f} jam lalu)"
+
+
 def format_status_saja(d: dict, lok: int) -> str:
     """Untuk lokasi klasifikasi (mis. Pucanganom): status sekarang tanpa prediksi."""
     s = d["sekarang"]
@@ -158,6 +173,7 @@ def format_status_saja(d: dict, lok: int) -> str:
         f"{ik.get(s['status'], '')} Status sekarang: {s['status']}\n"
         f"\U0001F4A7 Tinggi air: {s['tinggi_air_cm']} cm\n"
         f"\U0001F552 Data sensor terakhir: {s['waktu_data']}\n"
+        f"{badge_sensor(s['waktu_data'])}\n"
         f"ℹ️ Lokasi ini hanya monitoring status (tanpa prediksi ke depan).\n"
         f"\U0001F5FA️ {LOKASI_INFO[lok]['gmaps']}"
     )
@@ -177,6 +193,7 @@ def format_prediksi(d: dict, horizon: int, lok: int) -> str:
         teks += (f"\U0001F52E Prediksi {horizon} jam ke depan: "
                  f"{pr['tinggi_air_cm']} cm ({pr['status']}){lab}\n")
     teks += f"\U0001F552 Data sensor terakhir: {s['waktu_data']}\n"
+    teks += f"{badge_sensor(s['waktu_data'])}\n"
     teks += f"\U0001F5FA️ {LOKASI_INFO[lok]['gmaps']}"
     return teks
 

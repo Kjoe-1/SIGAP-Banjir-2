@@ -35,6 +35,13 @@ INTERVAL_MENIT = int(os.environ.get("INTERVAL_MENIT", "60"))
 # Notifikasi hanya dikirim bila data sensor lebih baru dari sekian jam (anti
 # alarm-palsu saat sensor offline). Chart tetap tampil data terakhir.
 MAX_UMUR_NOTIF_JAM = int(os.environ.get("MAX_UMUR_NOTIF_JAM", "6"))
+# Sensor dianggap OFFLINE bila data terakhir lebih tua dari sekian jam.
+SENSOR_OFFLINE_JAM = int(os.environ.get("SENSOR_OFFLINE_JAM", "3"))
+
+# Status sensor terakhir yang sudah di-broadcast, per lokasi (anti-spam transisi).
+_sensor_state: dict[int, str] = {}
+NAMA_LOKASI = {1: "Rumah Pompa Pucanganom", 2: "Universitas Hang Tuah",
+               3: "Rumah Pompa Kalibokor"}
 
 STATUS_URUT = {"AMAN": 0, "WASPADA": 1, "SIAGA": 2}
 IKON = {"SIAGA": "\U0001F534", "WASPADA": "\U0001F7E1", "AMAN": "\U0001F7E2"}
@@ -90,6 +97,50 @@ def _data_segar(d: dict) -> bool:
     return 0 <= umur_jam <= MAX_UMUR_NOTIF_JAM
 
 
+def _sensor_status(d: dict) -> str | None:
+    """'online' / 'offline' / None (tak bisa ditentukan, mis. fallback demo)."""
+    if d.get("fallback_demo"):
+        return None  # koneksi DB gagal -> status sensor tak diketahui
+    if not d.get("success"):
+        return "offline"  # tak ada data realtime valid
+    w = (d.get("sekarang") or {}).get("waktu_data")
+    if not w:
+        return None
+    try:
+        t = datetime.strptime(str(w)[:19], "%Y-%m-%d %H:%M:%S")
+    except Exception:
+        return None
+    now = datetime.now(ZoneInfo("Asia/Jakarta")).replace(tzinfo=None)
+    umur = (now - t).total_seconds() / 3600
+    return "online" if umur <= SENSOR_OFFLINE_JAM else "offline"
+
+
+async def _cek_transisi_sensor(bot, lok: int, d: dict):
+    """Deteksi sensor mati/hidup dan broadcast ke SEMUA user saat transisi."""
+    state = _sensor_status(d)
+    if state is None:
+        return
+    lama = _sensor_state.get(lok)
+    _sensor_state[lok] = state
+    if lama is None or lama == state:
+        return  # baseline (diam) atau tidak berubah (anti-spam)
+    nama = NAMA_LOKASI.get(lok, f"Lokasi {lok}")
+    if state == "offline":
+        pesan = (f"⚠️ *Sensor {nama} OFFLINE*\n"
+                 "Data realtime terhenti. Prediksi sementara memakai data terakhir, "
+                 "dan peringatan banjir otomatis nonaktif sampai sensor aktif lagi.")
+    else:
+        pesan = (f"✅ *Sensor {nama} AKTIF KEMBALI*\n"
+                 "Data realtime sudah masuk lagi — pemantauan kembali normal. \U0001F389")
+    ids = await crud.semua_chat_ids()
+    for cid in ids:
+        try:
+            await bot.send_message(cid, pesan, parse_mode="Markdown")
+        except Exception as e:
+            log.warning("gagal kirim status sensor ke %s: %s", cid, e)
+    log.info("[sensor] lok %s %s->%s, broadcast ke %d user", lok, lama, state, len(ids))
+
+
 async def _broadcast(bot, chat_ids: list[int], teks: str):
     for cid in chat_ids:
         try:
@@ -105,6 +156,7 @@ async def cek_dan_broadcast(bot):
     for lok in LOKASI:
         d = await jalankan_prediksi(lok)
         hasil[lok] = d
+        await _cek_transisi_sensor(bot, lok, d)  # notif sensor mati/hidup (transisi)
         if not d.get("success"):
             log.info("  [lok %s] skip: %s", lok, d.get("message", "tidak ada data"))
             continue

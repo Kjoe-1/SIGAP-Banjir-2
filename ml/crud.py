@@ -66,3 +66,9 @@ async def chat_ids_aktif(horizon: str) -> list[int]:
             select(Preference.chat_id).where(getattr(Preference, kolom).is_(True))
         )
         return list(rows)
+
+
+async def semua_chat_ids() -> list[int]:
+    """Semua chat_id user terdaftar (untuk broadcast umum, mis. status sensor)."""
+    async with Session() as s:
+        return list(await s.scalars(select(User.chat_id)))
