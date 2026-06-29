@@ -22,8 +22,9 @@ async function sensorDb(lokasi) {
   return mysql.createConnection({ ...DB, database: cfg.database });
 }
 
-// biar bisa baca JSON
-app.use(express.json());
+// biar bisa baca JSON (ditingkatkan limitnya untuk foto base64)
+app.use(express.json({ limit: "15mb" }));
+app.use(express.urlencoded({ limit: "15mb", extended: true }));
 
 // serve folder public (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, "public")));
@@ -216,7 +217,79 @@ app.get("/api/perbandingan", (req, res) => {
     try { const d = JSON.parse(stdout); d.fe_lokasi = feLokasi; res.json(d); }
     catch { res.status(500).json({ success: false, message: "Output tidak valid", stdout }); }
   });
+
+// Setup Table Laporan Banjir di database 'dbpvwemonbaru' (Lokasi 3)
+const fs = require("fs");
+
+async function setupLaporanTable() {
+  let conn;
+  try {
+    conn = await mysql.createConnection({ ...DB, database: "dbpvwemonbaru" });
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS \`laporan_banjir\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`waktu\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        \`latitude\` DOUBLE NOT NULL,
+        \`longitude\` DOUBLE NOT NULL,
+        \`catatan\` TEXT NOT NULL,
+        \`foto_url\` VARCHAR(255)
+      );
+    `;
+    await conn.query(createTableQuery);
+    console.log("Database: Tabel laporan_banjir siap.");
+  } catch (err) {
+    console.error("Gagal inisialisasi tabel laporan_banjir:", err);
+  } finally {
+    if (conn) await conn.end();
+  }
+}
+setupLaporanTable();
+
+// Ensure public/uploads folder exists
+const uploadsDir = path.join(__dirname, "public", "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Endpoint untuk handle upload laporan warga (Base64)
+app.post("/api/laporan", async (req, res) => {
+  const { lat, lng, catatan, fotoBase64 } = req.body;
+  if (!lat || !lng || !catatan) {
+    return res.status(400).json({ status: "error", message: "Data tidak lengkap" });
+  }
+
+  let filename = null;
+  if (fotoBase64) {
+    filename = `lapor_${Date.now()}.jpg`;
+    // Clean base64 prefix if exists
+    const base64Data = fotoBase64.replace(/^data:image\/\w+;base64,/, "");
+    try {
+      fs.writeFileSync(path.join(uploadsDir, filename), base64Data, "base64");
+    } catch (e) {
+      console.error("Gagal menyimpan file gambar:", e);
+      return res.status(500).json({ status: "error", message: "Gagal menyimpan file gambar" });
+    }
+  }
+
+  let conn;
+  try {
+    conn = await mysql.createConnection({ ...DB, database: "dbpvwemonbaru" });
+    const fotoUrl = filename ? `/uploads/${filename}` : null;
+    const query = "INSERT INTO laporan_banjir (latitude, longitude, catatan, foto_url) VALUES (?, ?, ?, ?)";
+    await conn.query(query, [lat, lng, catatan, fotoUrl]);
+    res.json({ status: "ok", message: "Laporan berhasil disimpan", fotoUrl });
+  } catch (err) {
+    console.error("Database insert error:", err);
+    res.status(500).json({ status: "error", message: "Gagal menyimpan ke database" });
+  } finally {
+    if (conn) await conn.end();
+  }
 });
+
+// Serve folder uploads secara statis
+app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
