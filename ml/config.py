@@ -32,7 +32,7 @@ LOKASI = {
 # Penomoran ikut LOKASI di atas: 1=Pucanganom, 2=UHT, 3=Kalikobor.
 AMBANG_TINGGI = {
     1: {"waspada": 110, "siaga": 130},  # Pucanganom (rumah pompa) - indikatif, info operator
-    2: {"waspada": 250, "siaga": 285},  # UHT (sungai) - tervalidasi sipil
+    2: {"waspada": 180, "siaga": 190},  # UHT (sungai) - acuan Bu Kamilia (Teknik Sipil)
     3: {"waspada": 120, "siaga": 150},  # Kalikobor (rumah pompa) - indikatif, info operator
 }
 
