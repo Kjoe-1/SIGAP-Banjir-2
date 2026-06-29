@@ -1,4 +1,4 @@
-let activeLokasi = 3;
+let activeLokasi = 2;
 const LOKASI_DATA = {
   1: { name: "Pucanganom", ml: 1 },
   2: { name: "UHT", ml: 2 },
@@ -256,9 +256,15 @@ async function muatBanding() {
 
     // Stats
     const diffs = hData.prediksi.map((p, i) => Math.abs(p - hData.aktual[i]));
-    const avgDiff = diffs.reduce((a, b) => a + b, 0) / diffs.length;
-    const accuracy = Math.max(0, Math.min(100, 100 - avgDiff * 2));
-    document.getElementById("bandingAkurasi").innerText = accuracy.toFixed(1) + "%";
+    const avgDiff = diffs.reduce((a, b) => a + b, 0) / diffs.length;   // MAE (cm)
+
+    // Ketepatan = persentase prediksi yang meleset <= toleransi (metrik bermakna,
+    // menggantikan rumus lama "100 - MAE*2" yang tidak punya arti statistik).
+    const TOLERANSI_CM = 15;
+    const tepat = diffs.filter((d) => d <= TOLERANSI_CM).length;
+    const ketepatan = (tepat / diffs.length) * 100;
+
+    document.getElementById("bandingAkurasi").innerText = ketepatan.toFixed(0) + "%";
     document.getElementById("bandingDeviasi").innerText = "± " + avgDiff.toFixed(1) + " cm";
 
     // Format dates nicely for labels
@@ -291,4 +297,5 @@ async function muatBanding() {
   }
 }
 
-muatData();
+// Default ke UHT (lokasi sungai, prediksi paling andal) saat halaman dibuka.
+setLokasi(2);
