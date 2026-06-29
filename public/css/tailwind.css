@@ -7,6 +7,8 @@
       "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
+    --color-black: #000;
+    --color-white: #fff;
     --spacing: 0.25rem;
     --text-xs: 0.75rem;
     --text-xs--line-height: calc(1 / 0.75);
@@ -19,31 +21,32 @@
     --font-weight-bold: 700;
     --tracking-tighter: -0.05em;
     --tracking-widest: 0.1em;
+    --leading-tight: 1.25;
     --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     --blur-sm: 8px;
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
-    --color-secondary-fixed: #ffd9de;
-    --color-surface-container-highest: #ebe3c3;
-    --color-tertiary-fixed-dim: #00e0b3;
+    --color-secondary-fixed: #eff6ff;
+    --color-surface-container-highest: #cbd5e1;
+    --color-tertiary-fixed-dim: #3b82f6;
     --color-on-primary: #ffffff;
     --color-on-secondary: #ffffff;
-    --color-surface: #fff9ea;
-    --color-outline: #747878;
-    --color-primary: #000000;
-    --color-secondary-container: #e50062;
-    --color-on-surface-variant: #444748;
-    --color-surface-variant: #ebe3c3;
-    --color-tertiary-fixed: #24ffcd;
-    --color-surface-container: #f6eecd;
-    --color-on-surface: #1f1c08;
-    --color-secondary: #b7004d;
-    --font-body-base: Georgia, serif;
+    --color-surface: #ffffff;
+    --color-outline: #94a3b8;
+    --color-primary: #094e87;
+    --color-secondary-container: #094e87;
+    --color-on-surface-variant: #475569;
+    --color-surface-variant: #f8fafc;
+    --color-tertiary-fixed: #60a5fa;
+    --color-surface-container: #f1f5f9;
+    --color-on-surface: #0f172a;
+    --color-secondary: #1d70b8;
+    --font-body-base: arial, serif;
     --font-label-caps: "Courier Prime", monospace;
     --font-headline-md: "Work Sans", sans-serif;
-    --font-display-lg: Georgia, serif;
+    --font-display-lg: arial, serif;
     --font-stat-lg: "Courier Prime", monospace;
     --font-ui-action: "Work Sans", sans-serif;
     --text-label-caps: 12px;
@@ -316,6 +319,9 @@
       max-width: 96rem;
     }
   }
+  .-mt-1 {
+    margin-top: calc(var(--spacing) * -1);
+  }
   .mt-1 {
     margin-top: var(--spacing);
   }
@@ -364,6 +370,9 @@
   .hidden {
     display: none;
   }
+  .inline {
+    display: inline;
+  }
   .inline-block {
     display: inline-block;
   }
@@ -381,6 +390,12 @@
   }
   .h-4 {
     height: calc(var(--spacing) * 4);
+  }
+  .h-8 {
+    height: calc(var(--spacing) * 8);
+  }
+  .h-10 {
+    height: calc(var(--spacing) * 10);
   }
   .h-16 {
     height: calc(var(--spacing) * 16);
@@ -460,6 +475,9 @@
   .w-8 {
     width: calc(var(--spacing) * 8);
   }
+  .w-10 {
+    width: calc(var(--spacing) * 10);
+  }
   .w-16 {
     width: calc(var(--spacing) * 16);
   }
@@ -497,10 +515,6 @@
     --tw-translate-y: calc(var(--spacing) * -2);
     translate: var(--tw-translate-x) var(--tw-translate-y);
   }
-  .translate-y-\[-2px\] {
-    --tw-translate-y: -2px;
-    translate: var(--tw-translate-x) var(--tw-translate-y);
-  }
   .-rotate-1 {
     rotate: calc(1deg * -1);
   }
@@ -510,14 +524,14 @@
   .rotate-1 {
     rotate: 1deg;
   }
+  .transform {
+    transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
+  }
   .animate-pulse {
     animation: var(--animate-pulse);
   }
   .cursor-pointer {
     cursor: pointer;
-  }
-  .resize {
-    resize: both;
   }
   .grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -573,8 +587,14 @@
   .overflow-visible {
     overflow: visible;
   }
+  .overflow-x-auto {
+    overflow-x: auto;
+  }
   .overflow-y-auto {
     overflow-y: auto;
+  }
+  .rounded {
+    border-radius: 0.25rem;
   }
   .rounded-full {
     border-radius: calc(infinity * 1px);
@@ -603,6 +623,10 @@
     border-right-style: var(--tw-border-style);
     border-right-width: 2px;
   }
+  .border-b {
+    border-bottom-style: var(--tw-border-style);
+    border-bottom-width: 1px;
+  }
   .border-b-2 {
     border-bottom-style: var(--tw-border-style);
     border-bottom-width: 2px;
@@ -624,11 +648,14 @@
   .bg-\[\#FFFDF0\] {
     background-color: #FFFDF0;
   }
+  .bg-black {
+    background-color: var(--color-black);
+  }
   .bg-primary {
     background-color: var(--color-primary);
   }
   .bg-primary\/30 {
-    background-color: color-mix(in srgb, #000000 30%, transparent);
+    background-color: color-mix(in srgb, #094e87 30%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-primary) 30%, transparent);
     }
@@ -655,7 +682,7 @@
     background-color: var(--color-surface-variant);
   }
   .bg-surface\/90 {
-    background-color: color-mix(in srgb, #fff9ea 90%, transparent);
+    background-color: color-mix(in srgb, #ffffff 90%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-surface) 90%, transparent);
     }
@@ -665,6 +692,9 @@
   }
   .bg-tertiary-fixed-dim {
     background-color: var(--color-tertiary-fixed-dim);
+  }
+  .object-cover {
+    object-fit: cover;
   }
   .p-0 {
     padding: 0;
@@ -696,6 +726,9 @@
   .px-4 {
     padding-inline: calc(var(--spacing) * 4);
   }
+  .py-0\.5 {
+    padding-block: calc(var(--spacing) * 0.5);
+  }
   .py-1 {
     padding-block: var(--spacing);
   }
@@ -719,6 +752,9 @@
   }
   .text-center {
     text-align: center;
+  }
+  .text-left {
+    text-align: left;
   }
   .font-body-base {
     font-family: var(--font-body-base);
@@ -778,6 +814,10 @@
   .text-\[18px\] {
     font-size: 18px;
   }
+  .leading-tight {
+    --tw-leading: var(--leading-tight);
+    line-height: var(--leading-tight);
+  }
   .font-bold {
     --tw-font-weight: var(--font-weight-bold);
     font-weight: var(--font-weight-bold);
@@ -820,6 +860,9 @@
   .text-tertiary-fixed-dim {
     color: var(--color-tertiary-fixed-dim);
   }
+  .text-white {
+    color: var(--color-white);
+  }
   .uppercase {
     text-transform: uppercase;
   }
@@ -851,6 +894,14 @@
   }
   .shadow-\[2px_0_0_0_\#000\] {
     --tw-shadow: 2px 0 0 0 var(--tw-shadow-color, #000);
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .shadow-\[2px_0_0_0_\#094e87\] {
+    --tw-shadow: 2px 0 0 0 var(--tw-shadow-color, #094e87);
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .shadow-\[2px_2px_0_0_\#094e87\] {
+    --tw-shadow: 2px 2px 0 0 var(--tw-shadow-color, #094e87);
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
   .filter {
@@ -920,10 +971,13 @@
       }
     }
   }
-  .hover\:bg-primary {
+  .hover\:bg-primary\/10 {
     &:hover {
       @media (hover: hover) {
-        background-color: var(--color-primary);
+        background-color: color-mix(in srgb, #094e87 10%, transparent);
+        @supports (color: color-mix(in lab, red, red)) {
+          background-color: color-mix(in oklab, var(--color-primary) 10%, transparent);
+        }
       }
     }
   }
@@ -931,13 +985,6 @@
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-surface-container-highest);
-      }
-    }
-  }
-  .hover\:text-on-primary {
-    &:hover {
-      @media (hover: hover) {
-        color: var(--color-on-primary);
       }
     }
   }
@@ -1075,10 +1122,34 @@
   inherits: false;
   initial-value: 0;
 }
+@property --tw-rotate-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-z {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-y {
+  syntax: "*";
+  inherits: false;
+}
 @property --tw-border-style {
   syntax: "*";
   inherits: false;
   initial-value: solid;
+}
+@property --tw-leading {
+  syntax: "*";
+  inherits: false;
 }
 @property --tw-font-weight {
   syntax: "*";
@@ -1272,7 +1343,13 @@
       --tw-translate-x: 0;
       --tw-translate-y: 0;
       --tw-translate-z: 0;
+      --tw-rotate-x: initial;
+      --tw-rotate-y: initial;
+      --tw-rotate-z: initial;
+      --tw-skew-x: initial;
+      --tw-skew-y: initial;
       --tw-border-style: solid;
+      --tw-leading: initial;
       --tw-font-weight: initial;
       --tw-tracking: initial;
       --tw-shadow: 0 0 #0000;
