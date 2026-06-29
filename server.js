@@ -286,6 +286,21 @@ app.post("/api/laporan", async (req, res) => {
   }
 });
 
+// Endpoint untuk mengambil semua laporan warga (GET)
+app.get("/api/laporan", async (req, res) => {
+  let conn;
+  try {
+    conn = await mysql.createConnection({ ...DB, database: "dbpvwemonbaru" });
+    const [rows] = await conn.query("SELECT * FROM laporan_banjir ORDER BY waktu DESC LIMIT 50");
+    res.json({ status: "ok", data: rows });
+  } catch (err) {
+    console.error("Database select error:", err);
+    res.status(500).json({ status: "error", message: "Gagal memuat laporan" });
+  } finally {
+    if (conn) await conn.end();
+  }
+});
+
 // Serve folder uploads secara statis
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
