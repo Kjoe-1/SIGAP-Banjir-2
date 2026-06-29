@@ -318,7 +318,6 @@ function updateSummary(latest) {
 
   updateGauges(latest, tinggiAir, distance);
 }
-}
 
 // ================= FETCH DATA =================
 async function fetchData() {
