@@ -42,9 +42,11 @@ app.get("/api/sensor", async (req, res) => {
     if (!conn) return res.json({ status: "ok", lokasi, data: [] });
 
     const cfg = SENSOR_CFG[lokasi];
-    const [rows] = await conn.query(
-      `SELECT * FROM \`${cfg.table}\` ORDER BY \`${cfg.order}\` DESC LIMIT 12`
-    );
+    let queryStr = `SELECT * FROM \`${cfg.table}\` ORDER BY \`${cfg.order}\` DESC LIMIT 12`;
+    if (lokasi === 2) {
+      queryStr = `SELECT *, (SELECT distance FROM esp3 WHERE esp3.time <= esp2.time ORDER BY esp3.time DESC LIMIT 1) AS distance FROM esp2 ORDER BY time DESC LIMIT 12`;
+    }
+    const [rows] = await conn.query(queryStr);
 
     const data = rows.reverse().map((r) => {
       if (lokasi === 2) {
@@ -58,6 +60,8 @@ app.get("/api/sensor", async (req, res) => {
           windmax: r.windmax,
           windir: r.windir,
           baro: r.baro,
+          distance1: r.distance !== undefined && r.distance !== null ? r.distance : 0,
+          distance2: r.distance !== undefined && r.distance !== null ? r.distance : 0,
         };
       }
       return {
@@ -122,14 +126,16 @@ app.get("/api/latest-prediction", async (req, res) => {
     if (!conn) return res.json({ success: false, message: "Lokasi tidak punya sensor" });
 
     const cfg = SENSOR_CFG[lokasi];
-    const [rows] = await conn.query(
-      `SELECT * FROM \`${cfg.table}\` ORDER BY \`${cfg.order}\` DESC LIMIT 1`
-    );
+    let queryStr = `SELECT * FROM \`${cfg.table}\` ORDER BY \`${cfg.order}\` DESC LIMIT 1`;
+    if (lokasi === 2) {
+      queryStr = `SELECT *, (SELECT distance FROM esp3 WHERE esp3.time <= esp2.time ORDER BY esp3.time DESC LIMIT 1) AS distance FROM esp2 ORDER BY time DESC LIMIT 1`;
+    }
+    const [rows] = await conn.query(queryStr);
     if (!rows.length) return res.json({ success: false, message: "Tidak ada data sensor" });
 
     const latest = rows[0];
     const s = lokasi === 2
-      ? { distance_cm: 0, rainfall_mm: latest.rain1h || 0, tip_count: 0 }
+      ? { distance_cm: latest.distance || 0, rainfall_mm: latest.rain1h || 0, tip_count: 0 }
       : { distance_cm: latest.distance1 || latest.distance2 || 0, rainfall_mm: latest.curah_hujan || latest.curah_hujan_1h || 0, tip_count: latest.jumlah_tip || 0 };
 
     execFile("python", ["predict_ml.py", JSON.stringify(s)], (error, stdout, stderr) => {
@@ -153,15 +159,17 @@ app.get("/api/forecast-1hour", async (req, res) => {
     if (!conn) return res.json({ success: false, message: "Lokasi tidak punya sensor" });
 
     const cfg = SENSOR_CFG[lokasi];
-    const [rows] = await conn.query(
-      `SELECT * FROM \`${cfg.table}\` ORDER BY \`${cfg.order}\` DESC LIMIT 1`
-    );
+    let queryStr = `SELECT * FROM \`${cfg.table}\` ORDER BY \`${cfg.order}\` DESC LIMIT 1`;
+    if (lokasi === 2) {
+      queryStr = `SELECT *, (SELECT distance FROM esp3 WHERE esp3.time <= esp2.time ORDER BY esp3.time DESC LIMIT 1) AS distance FROM esp2 ORDER BY time DESC LIMIT 1`;
+    }
+    const [rows] = await conn.query(queryStr);
     if (!rows.length) return res.json({ success: false, message: "Tidak ada data sensor" });
 
     const latest = rows[0];
     const payload = JSON.stringify({
-      distance1: latest.distance1 || 0,
-      distance2: latest.distance2 || 0,
+      distance1: lokasi === 2 ? (latest.distance || 0) : (latest.distance1 || 0),
+      distance2: lokasi === 2 ? (latest.distance || 0) : (latest.distance2 || 0),
       curah_hujan: latest.curah_hujan || latest.rain1h || 0,
       curah_hujan_1h: latest.curah_hujan_1h || latest.rain1h || 0,
       jumlah_tip: latest.jumlah_tip || 0,

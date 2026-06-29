@@ -100,6 +100,13 @@ def main():
     if cfg["tipe"] == "klasifikasi":
         meta = json.load(open(os.path.join(base, cfg["meta"])))
         d = df.dropna(subset=["distance_avg"])
+        if d.empty:
+            out["sekarang"] = {"waktu_data": "N/A", "distance_cm": 0.0, "tinggi_air_cm": 0.0, "status": "OFFLINE"}
+            out["ambang"] = {"waspada": round(meta["ref"] - meta["t_waspada_dist"], 1), "siaga": round(meta["ref"] - meta["t_siaga_dist"], 1)}
+            out["prediksi"] = {str(h): {"jam_ke_depan": h, "tinggi_air_cm": None, "status": "tidak_tersedia", "confidence": None, "keandalan": "tidak_tersedia"} for h in HOR}
+            out["peringatan"] = {"ada": False, "status": "AMAN", "dalam_jam": 0, "pesan": "Sensor Pucanganom Offline"}
+            out["catatan"] = "Tidak ada data sensor valid di database."
+            print(json.dumps(out, default=str)); return
         row = d.iloc[-1] if (a.mode == "db" or a.jam is None) else d[d.jam == pd.to_datetime(a.jam)].iloc[-1]
         dist = float(row["distance_avg"]); ref = meta["ref"]
         t_was_d, t_sia_d = meta["t_waspada_dist"], meta["t_siaga_dist"]

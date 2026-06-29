@@ -1,8 +1,8 @@
 let activeLokasi = 3;
 const LOKASI_DATA = {
   1: { name: "Pucanganom", ml: 1 },
-  2: { name: "UHT", ml: 1 },
-  3: { name: "Kalikobor", ml: 2 },
+  2: { name: "UHT", ml: 2 },
+  3: { name: "Kalikobor", ml: 3 },
 };
 
 function setLokasi(fe) {
@@ -86,25 +86,43 @@ async function muatPrediksi() {
     const badgeEl = document.getElementById("sidebarKeandalan");
     if (badgeEl) badgeEl.innerText = data.tipe === "klasifikasi" ? "klasifikasi" : (p1 ? p1.keandalan || "-" : "-");
 
-    // Forecast bars
+    // Forecast bars (7 history bars + 5 prediction bars)
     const barContainer = document.getElementById("forecastBars");
-    if (barContainer && pred) {
+    if (barContainer && (pred || data.histori)) {
       const H = [1, 3, 6, 12, 24];
       const bars = barContainer.children;
       const barCount = bars.length;
+      const history = data.histori || [];
       for (let i = 0; i < barCount; i++) {
         const bar = bars[i];
-        const idx = i < barCount - H.length ? 0 : H[i - (barCount - H.length)];
-        const p = idx > 0 ? pred[String(idx)] : null;
         let h = 10, cls = "bg-primary border border-primary", label = "-";
-        if (p && p.tinggi_air_cm != null) {
-          h = Math.min(p.tinggi_air_cm / maxH * 100, 95);
-          label = p.tinggi_air_cm + "cm";
-          cls = p.status === "SIAGA"
-            ? "bg-secondary-container halftone-pink border-2 border-primary shadow-[2px_0_0_0_#000] z-10"
-            : p.status === "WASPADA"
-              ? "bg-surface-variant stripe-bg border border-primary border-dashed"
-              : "bg-primary border border-primary";
+
+        if (i < barCount - H.length) {
+          // Historical data (first 7 bars)
+          const hIdx = i - (barCount - H.length - history.length); // align to right if history is shorter than 7
+          const histPoint = hIdx >= 0 && hIdx < history.length ? history[hIdx] : null;
+          if (histPoint && histPoint.tinggi_air_cm != null) {
+            h = Math.min(histPoint.tinggi_air_cm / maxH * 100, 95);
+            label = histPoint.tinggi_air_cm + "cm";
+            cls = histPoint.status === "SIAGA"
+              ? "bg-secondary-container halftone-pink border-2 border-primary shadow-[2px_0_0_0_#000] z-10"
+              : histPoint.status === "WASPADA"
+                ? "bg-surface-variant stripe-bg border border-primary border-dashed"
+                : "bg-primary border border-primary";
+          }
+        } else {
+          // Forecast data (last 5 bars)
+          const idx = H[i - (barCount - H.length)];
+          const p = pred ? pred[String(idx)] : null;
+          if (p && p.tinggi_air_cm != null) {
+            h = Math.min(p.tinggi_air_cm / maxH * 100, 95);
+            label = p.tinggi_air_cm + "cm";
+            cls = p.status === "SIAGA"
+              ? "bg-secondary-container halftone-pink border-2 border-primary shadow-[2px_0_0_0_#000] z-10"
+              : p.status === "WASPADA"
+                ? "bg-surface-variant stripe-bg border border-primary border-dashed"
+                : "bg-primary border border-primary";
+          }
         }
         bar.style.height = h + "%";
         bar.className = "flex-1 " + cls + " relative group cursor-pointer transition-all duration-500";
