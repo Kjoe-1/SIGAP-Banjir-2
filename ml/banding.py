@@ -33,6 +33,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--lokasi", type=int, required=True, choices=[1, 2, 3])
     ap.add_argument("--max-points", type=int, default=48)
+    # Diterima agar kompatibel dgn pemanggilan server.js (--mode db); banding selalu
+    # memakai data demo (cfg["demo"]) sebagai pembanding historis, jadi mode diabaikan.
+    ap.add_argument("--mode", default="demo", choices=["demo", "db"])
     a = ap.parse_args()
     cfg = C.LOKASI[a.lokasi]
     base = C.BASE
