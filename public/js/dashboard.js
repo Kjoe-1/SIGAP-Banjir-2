@@ -319,6 +319,86 @@ function updateSummary(latest) {
   updateGauges(latest, tinggiAir, distance);
 }
 
+// ================= UPDATE HISTORY TABLE =================
+function updateHistoryTable(rows) {
+  const tbody = document.getElementById("historyTableBody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-outline">TIDAK ADA DATA</td></tr>`;
+    return;
+  }
+
+  const ref = REF_HEIGHTS[activeLocation];
+  const thresholds = {
+    lokasi1: { waspada: 110, siaga: 130 },
+    lokasi2: { waspada: 250, siaga: 285 },
+    lokasi3: { waspada: 120, siaga: 150 },
+  }[activeLocation];
+
+  rows.forEach((r) => {
+    const d1 = parseFloat(r.distance1);
+    const d2 = parseFloat(r.distance2);
+
+    let distance = null;
+    if (activeLocation === "lokasi3") {
+      const d1Valid = d1 > 10 && d1 < 600;
+      const d2Valid = d2 > 10 && d2 < 600;
+      if (d2Valid) distance = d2;
+      else if (d1Valid) distance = d1;
+    } else {
+      const d1Valid = d1 > 10 && d1 < 600;
+      const d2Valid = d2 > 10 && d2 < 600;
+      if (d1Valid) distance = d1;
+      else if (d2Valid) distance = d2;
+    }
+
+    let tinggiAirStr = "-";
+    let statusStr = "AMAN";
+    let statusClass = "bg-primary border-primary text-on-primary";
+
+    if (distance === null) {
+      statusStr = "GLITCH";
+      statusClass = "bg-warning border-warning text-on-warning";
+    } else {
+      const tinggiAir = ref - distance;
+      tinggiAirStr = Math.max(0, tinggiAir).toFixed(1) + " cm";
+
+      if (tinggiAir >= thresholds.siaga) {
+        statusStr = "SIAGA";
+        statusClass = "bg-secondary-container halftone-pink border border-primary shadow-[2px_2px_0_0_#000] px-2 py-0.5 rounded";
+      } else if (tinggiAir >= thresholds.waspada) {
+        statusStr = "WASPADA";
+        statusClass = "bg-surface-variant stripe-bg border border-primary border-dashed px-2 py-0.5 rounded";
+      } else {
+        statusClass = "bg-success border border-primary px-2 py-0.5 rounded text-white";
+      }
+    }
+
+    // format time string nicely
+    const date = new Date(r.waktu || r.time);
+    const timeStr = date.toLocaleString("id-ID", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+
+    const tr = document.createElement("tr");
+    tr.className = "border-b border-primary hover:bg-surface-container-highest transition-colors";
+    tr.innerHTML = `
+      <td class="p-3 border-r-2 border-primary">${timeStr}</td>
+      <td class="p-3 border-r-2 border-primary">${d1 > 0 ? d1.toFixed(1) + " cm" : "-"}</td>
+      <td class="p-3 border-r-2 border-primary">${d2 > 0 ? d2.toFixed(1) + " cm" : "-"}</td>
+      <td class="p-3 border-r-2 border-primary font-bold">${tinggiAirStr}</td>
+      <td class="p-3"><span class="font-bold font-label-caps text-xs ${statusClass}">${statusStr}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 // ================= FETCH DATA =================
 async function fetchData() {
   try {
@@ -328,6 +408,7 @@ async function fetchData() {
 
     if (!json.data || json.data.length === 0) {
       updateSummary(null);
+      updateHistoryTable(null);
       return;
     }
 
@@ -358,12 +439,16 @@ async function fetchData() {
     rainChart.data.datasets[0].label = "Tinggi Muka Air (cm)";
     rainChart.update();
 
+    // Populate history table
+    updateHistoryTable(json.data);
+
     const latest = rows[rows.length - 1];
     updateSummary(latest);
     if (latest.lat && latest.lng) updateMap(latest.lat, latest.lng);
   } catch (err) {
     console.error(err);
     updateSummary(null);
+    updateHistoryTable(null);
   }
 }
 

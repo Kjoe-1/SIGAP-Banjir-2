@@ -189,6 +189,30 @@
                 </a>
             </div>
         </div>
+
+        <!-- History Table -->
+        <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-lg p-0 flex flex-col mt-4">
+            <div class="border-b-2 border-primary bg-primary text-on-primary p-2 px-4 flex justify-between items-center">
+                <span class="font-label-caps uppercase tracking-widest">Tabel Riwayat Data (12 Data Terakhir)</span>
+                <span class="material-symbols-outlined text-[18px]">table_rows</span>
+            </div>
+            <div class="overflow-x-auto p-4">
+                <table class="w-full text-left border-2 border-primary font-label-caps text-sm">
+                    <thead>
+                        <tr class="border-b-2 border-primary bg-surface-container">
+                            <th class="p-3 border-r-2 border-primary">Waktu</th>
+                            <th class="p-3 border-r-2 border-primary">Jarak 1</th>
+                            <th class="p-3 border-r-2 border-primary">Jarak 2</th>
+                            <th class="p-3 border-r-2 border-primary">Tinggi Air (cm)</th>
+                            <th class="p-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody" class="bg-surface">
+                        <!-- Filled via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </main>
 
