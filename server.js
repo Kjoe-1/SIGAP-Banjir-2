@@ -210,7 +210,7 @@ app.get("/api/perbandingan", (req, res) => {
   const feLokasi = parseInt(req.query.lokasi) || 3;
   const mLokasi = BANDING_MAP[feLokasi] || 1;
   const maxPoints = parseInt(req.query.max) || 50;
-  const args = ["banding.py", "--lokasi", String(mLokasi), "--max-points", String(maxPoints)];
+  const args = ["banding.py", "--lokasi", String(mLokasi), "--mode", "db", "--max-points", String(maxPoints)];
   execFile("python", args, { cwd: ML_DIR, timeout: 30000 }, (err, stdout, stderr) => {
     if (err) return res.status(500).json({ success: false, message: "Gagal perbandingan", stderr: stderr });
     try { const d = JSON.parse(stdout); d.fe_lokasi = feLokasi; res.json(d); }

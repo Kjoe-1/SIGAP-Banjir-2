@@ -32,6 +32,7 @@ def _fitur_lok2(seri, jam, fitur):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--lokasi", type=int, required=True, choices=[1, 2, 3])
+    ap.add_argument("--mode", default="demo", choices=["demo", "db"])
     ap.add_argument("--max-points", type=int, default=48)
     a = ap.parse_args()
     cfg = C.LOKASI[a.lokasi]
@@ -41,23 +42,46 @@ def main():
         print(json.dumps({"success": False, "message": "Tidak ada forecasting"}))
         return
 
-    df = pd.read_csv(os.path.join(base, cfg["demo"]))
-    df["jam"] = pd.to_datetime(df["jam"])
+    out = {"success": True, "lokasi": a.lokasi, "nama_lokasi": cfg["nama"], "tipe": cfg["tipe"], "sumber": a.mode}
+
+    if a.mode == "db":
+        try:
+            from prediksi import _ambil_db
+            df = _ambil_db(cfg, anchor="latest", lookback=336)
+        except Exception as e:
+            df = pd.read_csv(os.path.join(base, cfg["demo"]))
+            df["jam"] = pd.to_datetime(df["jam"])
+            out["sumber"] = "demo"
+            out["fallback_demo"] = True
+            out["alasan_fallback"] = str(e)
+        else:
+            if df.empty or df.dropna(subset=["distance_avg"]).empty:
+                print(json.dumps({"success": False, "message": "Tidak ada data realtime valid dari DB."}))
+                return
+    else:
+        df = pd.read_csv(os.path.join(base, cfg["demo"]))
+        df["jam"] = pd.to_datetime(df["jam"])
+
     df = df.sort_values("jam").reset_index(drop=True)
 
     b = pickle.load(open(os.path.join(base, cfg["model"]), "rb"))
     ref, t_was, t_sia = b["ref"], b["t_waspada_dist"], b["t_siaga_dist"]
 
-    out = {"success": True, "lokasi": a.lokasi, "nama_lokasi": cfg["nama"], "tipe": cfg["tipe"],
-           "ref": ref, "t_waspada": t_was, "t_siaga": t_sia}
+    # Override ambang dengan tinggi air resmi bila tersedia (lihat config.AMBANG_TINGGI).
+    _ov = C.AMBANG_TINGGI.get(a.lokasi)
+    if _ov:
+        t_was, t_sia = ref - _ov["waspada"], ref - _ov["siaga"]
+
+    out.update({"ref": ref, "t_waspada": t_was, "t_siaga": t_sia})
     for h in HOR:
         out[str(h)] = {"waktu": [], "prediksi": [], "aktual": []}
 
     if cfg["tipe"] == "forecast_hujan":
         target_map = {1: "target_1", 3: "target_3", 6: "target_6", 12: "target_12", 24: "target_24"}
-        start = max(0, len(df) - a.max_points)
+        seri = df.set_index("jam")["distance_avg"] if a.mode == "db" else None
+        temp_data = {str(h): [] for h in HOR}
 
-        for i in range(start, len(df)):
+        for i in range(len(df)):
             row = df.iloc[i]
             jam = row["jam"]
 
@@ -69,24 +93,39 @@ def main():
                 continue
 
             for h in HOR:
-                tcol = target_map[h]
-                if tcol not in df.columns or pd.isna(row[tcol]):
-                    continue
+                if a.mode == "db":
+                    jam_aktual = jam + pd.Timedelta(hours=h)
+                    dist_aktual = float(seri.get(jam_aktual, np.nan))
+                    if pd.isna(dist_aktual):
+                        continue
+                else:
+                    tcol = target_map[h]
+                    if tcol not in df.columns or pd.isna(row[tcol]):
+                        continue
+                    dist_aktual = float(row[tcol])
+                    jam_aktual = jam + pd.Timedelta(hours=h)
+
                 try:
                     dist_pred, _, _ = _conf(b["models"][h], x, t_was, t_sia)
                 except Exception:
                     continue
                 tinggi_pred = round(ref - dist_pred, 1)
-                tinggi_aktual = round(ref - float(row[tcol]), 1)
-                out[str(h)]["waktu"].append(str(jam))
-                out[str(h)]["prediksi"].append(tinggi_pred)
-                out[str(h)]["aktual"].append(tinggi_aktual)
+                tinggi_aktual = round(ref - dist_aktual, 1)
+                temp_data[str(h)].append((str(jam_aktual), tinggi_pred, tinggi_aktual))
+
+        for h in HOR:
+            h_str = str(h)
+            sliced = temp_data[h_str][-a.max_points:]
+            for jam_val, t_pred, t_act in sliced:
+                out[h_str]["waktu"].append(jam_val)
+                out[h_str]["prediksi"].append(t_pred)
+                out[h_str]["aktual"].append(t_act)
 
     elif cfg["tipe"] == "forecast_tren":
         seri = df.set_index("jam")["distance_avg"]
-        start = max(0, len(df) - a.max_points)
+        temp_data = {str(h): [] for h in HOR}
 
-        for i in range(start, len(df)):
+        for i in range(len(df)):
             jam = df.iloc[i]["jam"]
             x = _fitur_lok2(seri, jam, b["fitur"])
             if x is None:
@@ -105,9 +144,15 @@ def main():
 
                 tinggi_pred = round(ref - dist_pred, 1)
                 tinggi_aktual = round(ref - dist_aktual, 1)
-                out[str(h)]["waktu"].append(str(jam))
-                out[str(h)]["prediksi"].append(tinggi_pred)
-                out[str(h)]["aktual"].append(tinggi_aktual)
+                temp_data[str(h)].append((str(jam_aktual), tinggi_pred, tinggi_aktual))
+
+        for h in HOR:
+            h_str = str(h)
+            sliced = temp_data[h_str][-a.max_points:]
+            for jam_val, t_pred, t_act in sliced:
+                out[h_str]["waktu"].append(jam_val)
+                out[h_str]["prediksi"].append(t_pred)
+                out[h_str]["aktual"].append(t_act)
 
     print(json.dumps(out, default=str))
 

@@ -14,7 +14,10 @@
 
 <!-- Mobile Top Bar -->
 <div class="md:hidden flex justify-between items-center px-4 py-2 w-full sticky top-0 z-50 bg-surface border-b-2 border-primary brutal-shadow">
-    <div class="font-headline-md uppercase tracking-tighter text-primary">SECTOR_MONITOR</div>
+    <div class="flex items-center gap-2">
+        <img src="logo.jpeg" alt="SIGAP Logo" class="h-8 w-8 rounded border border-primary object-cover">
+        <div class="font-headline-md uppercase tracking-tighter text-primary">SECTOR_MONITOR</div>
+    </div>
     <button class="p-2 border-2 border-primary active:translate-x-[2px] active:translate-y-[2px] brutal-shadow active:shadow-none bg-surface-container">
         <span class="material-symbols-outlined text-primary">menu</span>
     </button>
@@ -22,22 +25,28 @@
 
 <!-- Sidebar -->
 <nav class="hidden md:flex flex-col h-screen py-6 gap-4 bg-surface-container border-r-2 border-primary sticky top-0 w-56 shrink-0 z-40">
-    <div class="px-4 mb-6">
-        <div class="font-headline-md text-primary text-shadow-riso uppercase tracking-tighter">SECTOR_MONITOR</div>
+    <div class="px-4 mb-6 flex flex-col gap-2">
+        <div class="flex items-center gap-3">
+            <img src="logo.jpeg" alt="SIGAP Logo" class="h-10 w-10 rounded border-2 border-primary object-cover brutal-shadow">
+            <div>
+                <div class="font-headline-md text-primary text-shadow-riso uppercase tracking-tighter leading-tight"></div>
+                <div class="font-label-caps text-on-surface-variant -mt-1"></div>
+            </div>
+        </div>
         <div class="font-label-caps text-on-surface-variant mt-1">SIGAP_BANJIR</div>
     </div>
     <div class="flex-1 overflow-y-auto px-2 flex flex-col gap-2">
         <div class="font-label-caps text-outline px-2 mb-1">ZONES</div>
         <a id="navLok1" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:scale-95 transition-transform cursor-pointer" data-lokasi="1">
-            <span class="material-symbols-outlined">location_on</span>
+            <span class="material-symbols-outlined">ssid_chart</span>
             <span class="font-label-caps uppercase tracking-widest" id="navLok1Name">PUCANGANOM</span>
         </a>
         <a id="navLok2" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:scale-95 transition-transform cursor-pointer" data-lokasi="2">
-            <span class="material-symbols-outlined">location_on</span>
+            <span class="material-symbols-outlined">ssid_chart</span>
             <span class="font-label-caps uppercase tracking-widest" id="navLok2Name">UHT</span>
         </a>
         <a id="navLok3" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-bold brutal-shadow active:scale-95 transition-transform cursor-pointer" data-lokasi="3">
-            <span class="material-symbols-outlined">analytics</span>
+            <span class="material-symbols-outlined">ssid_chart</span>
             <span class="font-label-caps uppercase tracking-widest" id="navLok3Name">KALIKOBOR</span>
         </a>
     </div>
@@ -170,11 +179,11 @@
                 <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow p-3 rotate-1">
                     <h3 class="font-headline-md text-primary mb-2 uppercase">Horizon</h3>
                     <div class="flex flex-wrap gap-1" id="horizonTabs">
-                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface font-label-caps hover:bg-primary hover:text-on-primary transition-colors" data-h="1">1H</button>
-                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface font-label-caps hover:bg-primary hover:text-on-primary transition-colors" data-h="3">3H</button>
-                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-label-caps translate-y-[-2px] brutal-shadow" data-h="6">6H</button>
-                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface font-label-caps hover:bg-primary hover:text-on-primary transition-colors" data-h="12">12H</button>
-                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface font-label-caps hover:bg-primary hover:text-on-primary transition-colors" data-h="24">24H</button>
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface text-primary font-label-caps hover:bg-primary/10 transition-colors cursor-pointer" data-h="1">1H</button>
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface text-primary font-label-caps hover:bg-primary/10 transition-colors cursor-pointer" data-h="3">3H</button>
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-primary text-on-primary font-label-caps pointer-events-none" data-h="6">6H</button>
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface text-primary font-label-caps hover:bg-primary/10 transition-colors cursor-pointer" data-h="12">12H</button>
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface text-primary font-label-caps hover:bg-primary/10 transition-colors cursor-pointer" data-h="24">24H</button>
                     </div>
                 </div>
                 <div class="bg-surface-container-highest border-2 border-primary p-4 flex items-center gap-4 relative overflow-hidden">
@@ -196,15 +205,12 @@
                     <h2 class="font-label-caps uppercase tracking-widest">Prediksi vs Data Asli</h2>
                     <span class="material-symbols-outlined text-[18px]">ssid_chart</span>
                 </div>
-                <div class="p-4 flex-1 relative min-h-[200px] flex items-center justify-center grid-bg" id="bandingChartContainer">
-                    <svg class="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
-                        <polyline id="bandingLineAktual" fill="none" points="0,80 20,75 40,60 60,45 80,40 100,20" stroke="#000000" stroke-linejoin="miter" stroke-width="3"></polyline>
-                        <polyline id="bandingLinePrediksi" fill="none" points="0,78 20,70 40,65 60,40 80,45 100,15" stroke="#e50062" stroke-dasharray="4,4" stroke-linejoin="miter" stroke-width="3"></polyline>
-                    </svg>
+                <div class="p-4 flex-1 relative min-h-[250px] w-full bg-surface grid-bg" id="bandingChartContainer">
+                    <canvas id="bandingChart" class="w-full h-full"></canvas>
                 </div>
                 <div class="border-t-2 border-primary p-2 flex justify-center gap-4 font-label-caps bg-surface">
-                    <div class="flex items-center gap-1"><div class="w-4 h-1 bg-primary"></div><span>DATA ASLI</span></div>
-                    <div class="flex items-center gap-1"><div class="w-4 h-1 border-t-2 border-dashed border-secondary-container"></div><span class="text-secondary-container">PREDIKSI</span></div>
+                    <div class="flex items-center gap-1"><div class="w-4 h-1 bg-black"></div><span>DATA ASLI</span></div>
+                    <div class="flex items-center gap-1"><div class="w-4 h-1" style="background-color: #1d70b8;"></div><span style="color: #1d70b8;">PREDIKSI</span></div>
                     <span class="text-on-surface-variant ml-auto text-[10px]" id="bandingDateRange"></span>
                 </div>
             </div>

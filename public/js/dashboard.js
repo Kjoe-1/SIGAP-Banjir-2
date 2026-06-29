@@ -90,7 +90,7 @@ const rainChart = new Chart(ctx, {
       {
         label: "Tinggi Muka Air (cm)",
         data: [],
-        borderColor: "#00bcd4",
+        borderColor: "#1d70b8",
         backgroundColor: "transparent",
         tension: 0.3,
         pointRadius: 2,
@@ -100,7 +100,7 @@ const rainChart = new Chart(ctx, {
   options: {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
     scales: {
       x: {
         ticks: {
@@ -208,6 +208,7 @@ function updateSummary(latest) {
     if (badge) {
       badge.innerText = "NO DATA";
       badge.style.backgroundColor = "gray";
+      badge.style.color = "white";
     }
     updateGauges(null);
     return;
@@ -269,15 +270,16 @@ function updateSummary(latest) {
   }
 
   if (distance === null) {
-    // Glitch/Offline state
+    // Offline state
     if (ind) ind.style.display = "none";
     document.getElementById("current-distance").innerHTML = "OFFLINE";
     setElText(statTinggi, "-");
-    setElText(statStatus, "GLITCH");
+    setElText(statStatus, "OFFLINE");
     
     if (badge) {
-      badge.innerText = "GLITCH";
-      badge.style.backgroundColor = "orange";
+      badge.innerText = "OFFLINE";
+      badge.style.backgroundColor = "gray";
+      badge.style.color = "white";
     }
     updateGauges(latest);
     return;
@@ -309,6 +311,7 @@ function updateSummary(latest) {
     badge.innerText = st;
     badge.style.backgroundColor =
       st === "AMAN" ? "green" : st === "WASPADA" ? "orange" : "red";
+    badge.style.color = "white";
   }
 
   if (ind) {
@@ -359,15 +362,15 @@ function updateHistoryTable(rows) {
     let statusClass = "bg-primary border-primary text-on-primary";
 
     if (distance === null) {
-      statusStr = "GLITCH";
-      statusClass = "bg-warning border-warning text-on-warning";
+      statusStr = "OFFLINE";
+      statusClass = "bg-surface-container border border-primary px-2 py-0.5 rounded text-outline";
     } else {
       const tinggiAir = ref - distance;
       tinggiAirStr = Math.max(0, tinggiAir).toFixed(1) + " cm";
 
       if (tinggiAir >= thresholds.siaga) {
         statusStr = "SIAGA";
-        statusClass = "bg-secondary-container halftone-pink border border-primary shadow-[2px_2px_0_0_#000] px-2 py-0.5 rounded";
+        statusClass = "bg-secondary-container halftone-pink border border-primary shadow-[2px_2px_0_0_#094e87] px-2 py-0.5 rounded";
       } else if (tinggiAir >= thresholds.waspada) {
         statusStr = "WASPADA";
         statusClass = "bg-surface-variant stripe-bg border border-primary border-dashed px-2 py-0.5 rounded";

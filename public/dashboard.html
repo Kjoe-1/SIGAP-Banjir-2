@@ -17,7 +17,10 @@
 
 <!-- Mobile Top Bar -->
 <div class="md:hidden flex justify-between items-center px-4 py-2 w-full sticky top-0 z-50 bg-surface border-b-2 border-primary brutal-shadow">
-    <div class="font-headline-md uppercase tracking-tighter text-primary">SECTOR_MONITOR</div>
+    <div class="flex items-center gap-2">
+        <img src="logo.jpeg" alt="SIGAP Logo" class="h-8 w-8 rounded border border-primary object-cover">
+        <div class="font-headline-md uppercase tracking-tighter text-primary">SECTOR_MONITOR</div>
+    </div>
     <button class="p-2 border-2 border-primary active:translate-x-[2px] active:translate-y-[2px] brutal-shadow active:shadow-none bg-surface-container">
         <span class="material-symbols-outlined text-primary">menu</span>
     </button>
@@ -25,8 +28,14 @@
 
 <!-- Sidebar -->
 <nav class="hidden md:flex flex-col h-screen py-6 gap-4 bg-surface-container border-r-2 border-primary sticky top-0 w-56 shrink-0 z-40">
-    <div class="px-4 mb-6">
-        <div class="font-headline-md text-primary text-shadow-riso uppercase tracking-tighter">SECTOR_MONITOR</div>
+    <div class="px-4 mb-6 flex flex-col gap-2">
+        <div class="flex items-center gap-3">
+            <img src="logo.jpeg" alt="SIGAP Logo" class="h-10 w-10 rounded border-2 border-primary object-cover brutal-shadow">
+            <div>
+                <div class="font-headline-md text-primary text-shadow-riso uppercase tracking-tighter leading-tight"></div>
+                <div class="font-label-caps text-on-surface-variant -mt-1"></div>
+            </div>
+        </div>
         <div class="font-label-caps text-on-surface-variant mt-1">SIGAP_BANJIR</div>
     </div>
     <div class="flex-1 overflow-y-auto px-2 flex flex-col gap-2">
@@ -40,7 +49,7 @@
             <span class="font-label-caps uppercase tracking-widest">UHT</span>
         </a>
         <a id="lokasi3" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-bold brutal-shadow active:scale-95 transition-transform cursor-pointer" data-lokasi="3">
-            <span class="material-symbols-outlined">analytics</span>
+            <span class="material-symbols-outlined">location_on</span>
             <span class="font-label-caps uppercase tracking-widest">KALIKOBOR</span>
         </a>
     </div>
