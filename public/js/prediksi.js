@@ -209,10 +209,12 @@ function initBandingChart() {
             color: "rgba(0, 0, 0, 0.05)"
           },
           ticks: {
-            maxRotation: 0,
+            maxRotation: 45,
+            minRotation: 30,
             autoSkip: true,
-            maxTicksLimit: 5,
-            padding: 8,
+            maxTicksLimit: 8,
+            padding: 6,
+            font: { size: 9 },
           }
         },
         y: {
