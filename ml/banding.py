@@ -81,18 +81,23 @@ def main():
         seri = df.set_index("jam")["distance_avg"] if a.mode == "db" else None
         temp_data = {str(h): [] for h in HOR}
 
+        # Kumpulkan fitur valid sekali, lalu PREDICT BATCH per horizon (1 panggilan/horizon,
+        # ganti _conf yg loop 120 pohon & buang confidence). Output IDENTIK, jauh lebih cepat
+        # (hindari timeout grafik perbandingan di Railway).
+        feats = []
         for i in range(len(df)):
             row = df.iloc[i]
-            jam = row["jam"]
-
             try:
                 x = _fitur_lok1(row, b["fitur"])
             except Exception:
                 continue
             if x is None or any(pd.isna(v) for v in x):
                 continue
+            feats.append((row["jam"], x, row))
 
-            for h in HOR:
+        for h in HOR:
+            items = []
+            for jam, x, row in feats:
                 if a.mode == "db":
                     jam_aktual = jam + pd.Timedelta(hours=h)
                     dist_aktual = float(seri.get(jam_aktual, np.nan))
@@ -104,14 +109,15 @@ def main():
                         continue
                     dist_aktual = float(row[tcol])
                     jam_aktual = jam + pd.Timedelta(hours=h)
-
-                try:
-                    dist_pred, _, _ = _conf(b["models"][h], x, t_was, t_sia)
-                except Exception:
-                    continue
-                tinggi_pred = round(ref - dist_pred, 1)
-                tinggi_aktual = round(ref - dist_aktual, 1)
-                temp_data[str(h)].append((str(jam_aktual), tinggi_pred, tinggi_aktual))
+                items.append((jam_aktual, dist_aktual, x))
+            if not items:
+                continue
+            try:
+                preds = b["models"][h].predict([it[2] for it in items])
+            except Exception:
+                continue
+            for (jam_aktual, dist_aktual, _x), dist_pred in zip(items, preds):
+                temp_data[str(h)].append((str(jam_aktual), round(ref - float(dist_pred), 1), round(ref - dist_aktual, 1)))
 
         for h in HOR:
             h_str = str(h)
@@ -149,26 +155,31 @@ def main():
         seri = df.set_index("jam")["distance_avg"]
         temp_data = {str(h): [] for h in HOR}
 
+        # Batch predict per horizon (output identik, jauh lebih cepat).
+        feats = []
         for i in range(len(df)):
             jam = df.iloc[i]["jam"]
             x = _fitur_lok2(seri, jam, b["fitur"])
             if x is None:
                 continue
+            feats.append((jam, x))
 
-            for h in HOR:
+        for h in HOR:
+            items = []
+            for jam, x in feats:
                 jam_aktual = jam + pd.Timedelta(hours=h)
                 dist_aktual = float(seri.get(jam_aktual, np.nan))
                 if pd.isna(dist_aktual):
                     continue
-
-                try:
-                    dist_pred, _, _ = _conf(b["models"][h], x, t_was, t_sia)
-                except Exception:
-                    continue
-
-                tinggi_pred = round(ref - dist_pred, 1)
-                tinggi_aktual = round(ref - dist_aktual, 1)
-                temp_data[str(h)].append((str(jam_aktual), tinggi_pred, tinggi_aktual))
+                items.append((jam_aktual, dist_aktual, x))
+            if not items:
+                continue
+            try:
+                preds = b["models"][h].predict([it[2] for it in items])
+            except Exception:
+                continue
+            for (jam_aktual, dist_aktual, _x), dist_pred in zip(items, preds):
+                temp_data[str(h)].append((str(jam_aktual), round(ref - float(dist_pred), 1), round(ref - dist_aktual, 1)))
 
         for h in HOR:
             h_str = str(h)
