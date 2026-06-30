@@ -75,19 +75,34 @@ def _prediksi_historis(df, jam_target, h, b, cfg, t_was, t_sia, ref):
 
 def _ambil_db(cfg, anchor="now", lookback=None):
     conn = _db_conn(cfg["db"]); J = f"{lookback or C.JAM_HISTORI} HOUR"
-    # anchor="now": jendela dihitung dari waktu server (default, untuk alert realtime).
-    # anchor="latest": jendela dari data TERAKHIR yang ada (mis. saat sensor sempat offline).
-    def batas(tbl, kol):
-        return f"NOW() - INTERVAL {J}" if anchor == "now" else f"(SELECT MAX({kol}) FROM {tbl}) - INTERVAL {J}"
+    def get_max_time(tbl, kol):
+        cur = conn.cursor()
+        cur.execute(f"SELECT MAX({kol}) FROM {tbl}")
+        r = cur.fetchone()[0]
+        cur.close()
+        return r
     try:
         if cfg["tipe"] == "forecast_hujan":
-            air = _query(conn, f"SELECT DATE_FORMAT(time,'%Y-%m-%d %H:00:00') AS jam, AVG(distance) AS distance_avg, MIN(distance) AS distance_min FROM esp3 WHERE time >= {batas('esp3','time')} GROUP BY jam ORDER BY jam")
-            cuaca = _query(conn, f"SELECT DATE_FORMAT(time,'%Y-%m-%d %H:00:00') AS jam, MAX(rain1h) AS rain1h_max, MAX(rain24h) AS rain24h_max, AVG(humi) AS humi_avg FROM esp2 WHERE time >= {batas('esp2','time')} GROUP BY jam ORDER BY jam")
+            if anchor == "now":
+                t_limit_esp3 = "NOW() - INTERVAL " + J
+                t_limit_esp2 = "NOW() - INTERVAL " + J
+            else:
+                max3 = get_max_time("esp3", "time")
+                max2 = get_max_time("esp2", "time")
+                t_limit_esp3 = f"'{max3}' - INTERVAL {J}" if max3 else f"NOW() - INTERVAL {J}"
+                t_limit_esp2 = f"'{max2}' - INTERVAL {J}" if max2 else f"NOW() - INTERVAL {J}"
+            air = _query(conn, f"SELECT DATE_FORMAT(time,'%Y-%m-%d %H:00:00') AS jam, AVG(distance) AS distance_avg, MIN(distance) AS distance_min FROM esp3 WHERE time >= {t_limit_esp3} GROUP BY jam ORDER BY jam")
+            cuaca = _query(conn, f"SELECT DATE_FORMAT(time,'%Y-%m-%d %H:00:00') AS jam, MAX(rain1h) AS rain1h_max, MAX(rain24h) AS rain24h_max, AVG(humi) AS humi_avg FROM esp2 WHERE time >= {t_limit_esp2} GROUP BY jam ORDER BY jam")
             df = pd.merge(air, cuaca, on="jam", how="inner")
             df = df[df.distance_avg.between(cfg["dist_min"], cfg["dist_max"]) & df.distance_min.between(cfg["dist_min"], cfg["dist_max"])].reset_index(drop=True)
             return _buat_fitur_lok1(df)
         else:
-            df = _query(conn, f"SELECT DATE_FORMAT(waktu,'%Y-%m-%d %H:00:00') AS jam, AVG(distance2) AS distance_avg FROM esp1 WHERE waktu >= {batas('esp1','waktu')} GROUP BY jam ORDER BY jam")
+            if anchor == "now":
+                t_limit = "NOW() - INTERVAL " + J
+            else:
+                max_waktu = get_max_time("esp1", "waktu")
+                t_limit = f"'{max_waktu}' - INTERVAL {J}" if max_waktu else f"NOW() - INTERVAL {J}"
+            df = _query(conn, f"SELECT DATE_FORMAT(waktu,'%Y-%m-%d %H:00:00') AS jam, AVG(distance2) AS distance_avg FROM esp1 WHERE waktu >= {t_limit} GROUP BY jam ORDER BY jam")
             df.loc[~df.distance_avg.between(cfg["dist_min"], cfg["dist_max"]), "distance_avg"] = np.nan
             return df
     finally:
