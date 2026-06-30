@@ -46,7 +46,7 @@ NAMA_LOKASI = {1: "Rumah Pompa Pucanganom", 2: "Universitas Hang Tuah",
 STATUS_URUT = {"AMAN": 0, "WASPADA": 1, "SIAGA": 2}
 IKON = {"SIAGA": "\U0001F534", "WASPADA": "\U0001F7E1", "AMAN": "\U0001F7E2"}
 # horizon bot ('3h') -> kunci di JSON prediksi.py ('3')
-HJAM = {"1h": "1", "3h": "3", "6h": "6", "12h": "12", "24h": "24"}
+HJAM = {"1h": "1", "3h": "3", "6h": "6"}
 
 # Anti-spam: status terakhir yang sudah di-broadcast, per (lokasi, horizon).
 _status_terakhir: dict[tuple[int, str], str] = {}

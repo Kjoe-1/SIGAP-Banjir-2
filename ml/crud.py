@@ -11,7 +11,7 @@ from db import Session
 from models import Preference, User
 
 # Horizon prediksi yang didukung -> nama kolom di tabel preferences.
-HORIZON = ["1h", "3h", "6h", "12h", "24h"]
+HORIZON = ["1h", "3h", "6h"]
 
 
 def _kolom(horizon: str) -> str:

@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Work+Sans:wght@400;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/tailwind.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body class="bg-surface grid-bg text-on-surface min-h-screen flex flex-col md:flex-row antialiased selection:bg-secondary-fixed selection:text-on-surface">
@@ -50,8 +49,15 @@
         </a>
         <a id="lokasi3" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-bold brutal-shadow active:scale-95 transition-transform cursor-pointer" data-lokasi="3">
             <span class="material-symbols-outlined">location_on</span>
-            <span class="font-label-caps uppercase tracking-widest">KALIKOBOR</span>
+            <span class="font-label-caps uppercase tracking-widest">KALIBOKOR</span>
         </a>
+    </div>
+    <!-- Sidebar Foto -->
+    <div class="px-2 mt-4 flex flex-col gap-1 pb-2">
+        <div class="font-label-caps text-outline px-2 mb-1">DOKUMENTASI</div>
+        <div class="bg-surface border-2 border-primary brutal-shadow-sm p-1 overflow-hidden h-36 flex items-center justify-center bg-surface-container relative">
+            <img id="lokasiPhoto" src="kalibokor.png" alt="Foto Lokasi" class="max-h-full max-w-full object-contain border border-primary/20 cursor-zoom-in hover:scale-105 transition-transform duration-300" onclick="openPhotoModal(this.src, 'Peta & Foto Lokasi - ' + document.getElementById('lokasiText').innerText)"/>
+        </div>
     </div>
     <div class="mt-auto px-2 flex flex-col gap-1 pb-4">
         <div class="h-px w-full bg-primary mb-1"></div>
@@ -60,7 +66,7 @@
             <span class="font-label-caps">SISTEM</span>
             <span class="inline-block w-2 h-2 rounded-full bg-tertiary-fixed animate-pulse border border-primary ml-auto"></span>
         </div>
-        <div class="font-label-caps text-on-surface-variant px-2" id="activeLocation">Kalikobor</div>
+        <div class="font-label-caps text-on-surface-variant px-2" id="activeLocation">Kalibokor</div>
     </div>
 </nav>
 
@@ -72,7 +78,7 @@
             <h1 class="font-display-lg text-primary uppercase tracking-tighter text-shadow-riso mb-2">Dashboard Monitoring</h1>
             <div class="flex items-center gap-2">
                 <span class="inline-block w-3 h-3 rounded-full bg-tertiary-fixed animate-pulse border border-primary"></span>
-                <span class="font-label-caps text-on-surface-variant">LOKASI: <span id="lokasiText">Kalikobor</span></span>
+                <span class="font-label-caps text-on-surface-variant">LOKASI: <span id="lokasiText">Kalibokor</span></span>
             </div>
         </div>
         <div class="flex items-center gap-2 mt-4 md:mt-0 flex-wrap">
@@ -128,19 +134,26 @@
             </div>
 
             <!-- Map -->
-            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-lg rotate-0.5 p-0 flex flex-col">
+            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-lg rotate-0.5 p-0 flex flex-col relative overflow-hidden">
                 <div class="bg-primary text-on-primary font-label-caps text-label-caps p-2 px-4 flex justify-between items-center">
                     <span>ID: PETA_LOKASI</span>
                     <span class="material-symbols-outlined text-[16px]">map</span>
                 </div>
-                <div id="map" class="h-64"></div>
+                <div class="relative w-full h-64 overflow-hidden">
+                    <iframe 
+                        id="mapIframe"
+                        class="w-full h-full border-none"
+                        src="https://maps.google.com/maps?q=-7.286943,112.755689&z=15&output=embed"
+                        loading="lazy">
+                    </iframe>
+                </div>
             </div>
         </div>
 
         <!-- Summary + Gauges -->
         <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-xl p-0 flex flex-col">
             <div class="border-b-2 border-primary bg-primary text-on-primary p-2 px-4 flex justify-between items-center">
-                <span class="font-label-caps uppercase tracking-widest">SENSOR: <span id="summaryLokasi">Kalikobor</span></span>
+                <span class="font-label-caps uppercase tracking-widest">SENSOR: <span id="summaryLokasi">Kalibokor</span></span>
                 <span id="status-badge" class="font-label-caps text-label-caps bg-surface px-2 py-1 text-primary">NO DATA</span>
             </div>
             <div class="p-4">
@@ -175,8 +188,10 @@
                 <div class="gauge-row" id="gaugeRow"></div>
 
                 <div class="status-bar mt-4"><div class="indicator" id="indicator"></div></div>
-                <div class="flex justify-between font-label-caps text-label-caps text-on-surface-variant mt-1">
-                    <span>AMAN</span><span>WASPADA</span><span>SIAGA</span>
+                <div class="flex justify-between font-label-caps text-label-caps mt-1">
+                    <span id="threshold-aman" style="color: #10b981;">AMAN</span>
+                    <span id="threshold-waspada" style="color: #eab308;">WASPADA</span>
+                    <span id="threshold-siaga" style="color: #ef4444;">SIAGA</span>
                 </div>
             </div>
         </div>
@@ -237,7 +252,20 @@
     </a>
 </nav>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Lightbox Modal -->
+<div id="photoModal" class="fixed inset-0 z-[10000] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300 opacity-0 cursor-zoom-out" onclick="closePhotoModal()">
+    <div class="relative max-w-4xl max-h-[90vh] bg-surface border-4 border-primary brutal-shadow-xl p-2 flex flex-col" onclick="event.stopPropagation()">
+        <!-- Close Button -->
+        <button class="absolute -top-6 -right-6 md:-top-4 md:-right-4 bg-secondary text-on-secondary border-2 border-primary brutal-shadow w-10 h-10 flex items-center justify-center active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:bg-secondary-container transition-all" onclick="closePhotoModal()">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <!-- Image -->
+        <img id="modalPhotoImg" src="" alt="Detail Lokasi" class="max-w-full max-h-[80vh] object-contain border-2 border-primary">
+        <!-- Title/Caption -->
+        <div id="modalPhotoCaption" class="font-label-caps text-center mt-2 text-primary uppercase tracking-widest text-sm font-bold"></div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/dashboard.js"></script>
 </body>

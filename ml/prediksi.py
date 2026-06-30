@@ -2,7 +2,7 @@ import argparse, json, pickle, os, warnings
 warnings.filterwarnings("ignore")
 import pandas as pd, numpy as np
 import config as C
-HOR = [1, 3, 6, 12, 24]
+HOR = [1, 3, 6]
 def _conf(rf, x, t_was, t_sia):
     dist = float(rf.predict([x])[0])
     ens = C.status_dari_distance(dist, t_was, t_sia)

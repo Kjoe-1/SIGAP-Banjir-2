@@ -1,19 +1,17 @@
 // ================= MAP =================
-let map = L.map("map").setView([-7.286943, 112.755689], 13);
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-let marker = L.marker([-7.286943, 112.755689]).addTo(map);
-
 function updateMap(lat, lng) {
-  map.setView([lat, lng], 15);
-  marker.setLatLng([lat, lng]);
+  const iframe = document.getElementById("mapIframe");
+  if (iframe) {
+    iframe.src = `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+  }
 }
 
 // ================= LOKASI =================
 let activeLocation = "lokasi3";
 const locations = {
-  lokasi1: { name: "Pucanganom", lat: -7.28498, lng: 112.802923, lokasi: 1 },
-  lokasi2: { name: "UHT", lat: -7.290753, lng: 112.793255, lokasi: 2 },
-  lokasi3: { name: "Kalikobor", lat: -7.286943, lng: 112.755689, lokasi: 3 },
+  lokasi1: { name: "Pucanganom", lat: -7.28498, lng: 112.802923, lokasi: 1, image: "pucanganom.png" },
+  lokasi2: { name: "UHT", lat: -7.290753, lng: 112.793255, lokasi: 2, image: "uht.png" },
+  lokasi3: { name: "kalibokor", lat: -7.286943, lng: 112.755689, lokasi: 3, image: "kalibokor.png" },
 };
 
 function setLocation(key) {
@@ -24,6 +22,13 @@ function setLocation(key) {
   setText("activeLocation", loc.name);
   setText("lokasiText", loc.name);
   setText("summaryLokasi", loc.name);
+
+  // update photo
+  const photoEl = document.getElementById("lokasiPhoto");
+  if (photoEl && loc.image) {
+    photoEl.src = loc.image;
+    photoEl.alt = "Foto Lokasi " + loc.name;
+  }
 
   // reset all sidebar buttons styling
   document.querySelectorAll("[id^=lokasi]").forEach((el) => {
@@ -166,7 +171,7 @@ function updateGauges(latest, tinggiAir, distance) {
       { value: d2 > 0 ? d2.toFixed(0) + " cm" : "-", label: "Jarak 2", percent: d2 > 0 ? Math.min((d2 / 600) * 100, 100) : 0, fillClass: "bg-surface-variant" }
     ];
   } else {
-    // Kalikobor (Water level): distance1, distance2
+    // Kalibokor (Water level): distance1, distance2
     const d1 = parseFloat(latest.distance1) || 0;
     const d2 = parseFloat(latest.distance2) || 0;
 
@@ -229,7 +234,7 @@ function updateSummary(latest) {
   let distance = null;
 
   if (activeLocation === "lokasi3") {
-    // Kalikobor: distance1 is known broken (flat 0), fallback to distance2
+    // Kalibokor: distance1 is known broken (flat 0), fallback to distance2
     const d1Valid = d1 > 10 && d1 < 600;
     const d2Valid = d2 > 10 && d2 < 600;
     if (d2Valid) {
@@ -307,16 +312,49 @@ function updateSummary(latest) {
   }
 
   setElText(statStatus, st);
+  if (statStatus) {
+    if (st === "AMAN") {
+      statStatus.style.color = "#10b981"; // green
+    } else if (st === "WASPADA") {
+      statStatus.style.color = "#eab308"; // yellow
+    } else if (st === "SIAGA") {
+      statStatus.style.color = "#ef4444"; // red
+    } else {
+      statStatus.style.color = "";
+    }
+  }
+
   if (badge) {
     badge.innerText = st;
     badge.style.backgroundColor =
-      st === "AMAN" ? "green" : st === "WASPADA" ? "orange" : "red";
+      st === "AMAN" ? "#10b981" : st === "WASPADA" ? "#eab308" : "#ef4444";
     badge.style.color = "white";
   }
 
   if (ind) {
     ind.style.display = "block";
     ind.style.left = st === "AMAN" ? "20%" : st === "WASPADA" ? "50%" : "80%";
+  }
+
+  // Update dynamic threshold labels
+  const labelAman = document.getElementById("threshold-aman");
+  const labelWaspada = document.getElementById("threshold-waspada");
+  const labelSiaga = document.getElementById("threshold-siaga");
+
+  if (labelAman && labelWaspada && labelSiaga) {
+    if (activeLocation === "lokasi1") {
+      labelAman.innerText = "AMAN (< 110 cm)";
+      labelWaspada.innerText = "WASPADA (110-130 cm)";
+      labelSiaga.innerText = "SIAGA (≥ 130 cm)";
+    } else if (activeLocation === "lokasi2") {
+      labelAman.innerText = "AMAN (< 250 cm)";
+      labelWaspada.innerText = "WASPADA (250-285 cm)";
+      labelSiaga.innerText = "SIAGA (≥ 285 cm)";
+    } else if (activeLocation === "lokasi3") {
+      labelAman.innerText = "AMAN (< 120 cm)";
+      labelWaspada.innerText = "WASPADA (120-150 cm)";
+      labelSiaga.innerText = "SIAGA (≥ 150 cm)";
+    }
   }
 
   updateGauges(latest, tinggiAir, distance);
@@ -370,12 +408,12 @@ function updateHistoryTable(rows) {
 
       if (tinggiAir >= thresholds.siaga) {
         statusStr = "SIAGA";
-        statusClass = "bg-secondary-container halftone-pink border border-primary shadow-[2px_2px_0_0_#094e87] px-2 py-0.5 rounded";
+        statusClass = "bg-danger text-white border border-primary px-2 py-0.5 rounded";
       } else if (tinggiAir >= thresholds.waspada) {
         statusStr = "WASPADA";
-        statusClass = "bg-surface-variant stripe-bg border border-primary border-dashed px-2 py-0.5 rounded";
+        statusClass = "bg-warning text-black border border-primary px-2 py-0.5 rounded";
       } else {
-        statusClass = "bg-success border border-primary px-2 py-0.5 rounded text-white";
+        statusClass = "bg-success text-white border border-primary px-2 py-0.5 rounded";
       }
     }
 
@@ -500,7 +538,20 @@ async function loadAIPrediction() {
     const warn = data.peringatan;
     const p1 = data.prediksi ? data.prediksi["1"] : null;
 
-    document.getElementById("statusText").innerText = skrg.status;
+    const statusTextEl = document.getElementById("statusText");
+    if (statusTextEl) {
+      statusTextEl.innerText = skrg.status;
+      if (skrg.status === "AMAN") {
+        statusTextEl.style.color = "#10b981"; // green
+      } else if (skrg.status === "WASPADA") {
+        statusTextEl.style.color = "#eab308"; // yellow
+      } else if (skrg.status === "SIAGA") {
+        statusTextEl.style.color = "#ef4444"; // red
+      } else {
+        statusTextEl.style.color = "";
+      }
+    }
+
     document.getElementById("confidenceText").innerText =
       skrg.confidence != null
         ? Math.round(skrg.confidence * 100) + "% pohon setuju"
@@ -517,15 +568,31 @@ async function loadAIPrediction() {
     if (statusDesc) {
       if (skrg.status === "SIAGA") {
         statusDesc.innerText = "Perlu pemantauan";
+        statusDesc.style.color = "#ef4444";
       } else if (skrg.status === "WASPADA") {
         statusDesc.innerText = "Waspada banjir";
+        statusDesc.style.color = "#eab308";
       } else {
         statusDesc.innerText = "Kondisi Normal";
+        statusDesc.style.color = "#10b981";
       }
     }
 
     if (p1 && p1.status !== "tidak_tersedia") {
-      document.getElementById("forecastStatusText").innerText = p1.status;
+      const forecastStatusTextEl = document.getElementById("forecastStatusText");
+      if (forecastStatusTextEl) {
+        forecastStatusTextEl.innerText = p1.status;
+        if (p1.status === "AMAN") {
+          forecastStatusTextEl.style.color = "#10b981";
+        } else if (p1.status === "WASPADA") {
+          forecastStatusTextEl.style.color = "#eab308";
+        } else if (p1.status === "SIAGA") {
+          forecastStatusTextEl.style.color = "#ef4444";
+        } else {
+          forecastStatusTextEl.style.color = "";
+        }
+      }
+
       document.getElementById("forecastRainText").innerText =
         p1.tinggi_air_cm != null ? p1.tinggi_air_cm + " cm" : "-";
       document.getElementById("forecastConfidenceText").innerText =
@@ -583,6 +650,31 @@ function updateClock() {
 }
 
 
+
+// ================= LIGHTBOX MODAL =================
+window.openPhotoModal = function(src, caption) {
+  const modal = document.getElementById("photoModal");
+  const img = document.getElementById("modalPhotoImg");
+  const cap = document.getElementById("modalPhotoCaption");
+  if (modal && img) {
+    img.src = src;
+    if (cap) cap.innerText = caption || "Detail Lokasi";
+    modal.classList.remove("hidden");
+    // Force layout reflow
+    modal.offsetWidth;
+    modal.classList.add("opacity-100");
+  }
+};
+
+window.closePhotoModal = function() {
+  const modal = document.getElementById("photoModal");
+  if (modal) {
+    modal.classList.remove("opacity-100");
+    setTimeout(() => {
+      modal.classList.add("hidden");
+    }, 300);
+  }
+};
 
 setInterval(updateClock, 1000);
 updateClock();

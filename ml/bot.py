@@ -41,7 +41,7 @@ TOKEN = os.environ.get("TELEGRAM_TOKEN", "").strip()
 BASE = _osp.dirname(_osp.abspath(__file__))
 
 # Label horizon untuk tampilan tombol.
-LABEL = {"1h": "1 jam", "3h": "3 jam", "6h": "6 jam", "12h": "12 jam", "24h": "24 jam"}
+LABEL = {"1h": "1 jam", "3h": "3 jam", "6h": "6 jam"}
 
 # Teks tombol keyboard permanen (user cukup pencet, tidak perlu ngetik).
 BTN_PREDIKSI = "\U0001F52E Prediksi Banjir"
@@ -49,7 +49,7 @@ BTN_SETTINGS = "⚙️ Pengaturan Notifikasi"
 BTN_GRAFIK = "📊 Grafik Ringkasan"
 
 # Info lokasi untuk tampilan bot: nama lengkap + koordinat + link Google Maps.
-# Penomoran IKUT website/ML: 1=Pucanganom, 2=UHT, 3=Kalikobor.
+# Penomoran IKUT website/ML: 1=Pucanganom, 2=UHT, 3=kalibokor.
 LOKASI_INFO = {
     1: {
         "nama": "Rumah Pompa Pucanganom",
@@ -69,7 +69,7 @@ LOKASI_INFO = {
 }
 # Urutan tampil di menu: UHT (tervalidasi), Kalibokor, Pucanganom.
 LOKASI_PREDIKSI = [2, 3, 1]
-JAM_PILIHAN = [1, 3, 6, 12, 24]
+JAM_PILIHAN = [1, 3, 6]
 
 dp = Dispatcher()
 
@@ -244,7 +244,7 @@ async def handle_start(message: Message):
         + status_sensor_singkat()
         + teks_ambang() + "\n\n"
         "Yang bisa kamu lakukan:\n"
-        "\U0001F52E *Prediksi Banjir* — pilih lokasi & rentang waktu (1–24 jam), "
+        "\U0001F52E *Prediksi Banjir* — pilih lokasi & rentang waktu (1–6 jam), "
         "lihat tinggi air sekarang + grafik prediksi.\n"
         "⚙️ *Pengaturan Notifikasi* — atur peringatan otomatis yang ingin diterima.\n"
         "\U0001F4CA *Grafik Ringkasan* — ringkasan prediksi semua lokasi.\n\n"

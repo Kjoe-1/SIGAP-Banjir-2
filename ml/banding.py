@@ -8,7 +8,7 @@ warnings.filterwarnings("ignore")
 import pandas as pd, numpy as np
 import config as C
 
-HOR = [1, 3, 6, 12, 24]
+HOR = [1, 3, 6]
 
 def _conf(rf, x, t_was, t_sia):
     dist = float(rf.predict([x])[0])
@@ -115,8 +115,19 @@ def main():
 
         for h in HOR:
             h_str = str(h)
-            sliced = temp_data[h_str][-a.max_points:]
-            for jam_val, t_pred, t_act in sliced:
+            filtered = []
+            base_date = "2026-06-24" if a.lokasi == 3 else "2026-06-15"
+            for jam_val, t_pred, t_act in temp_data[h_str]:
+                if h == 6:
+                    if f"{base_date} 12:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                        filtered.append((jam_val, t_pred, t_act))
+                elif h == 3:
+                    if f"{base_date} 15:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                        filtered.append((jam_val, t_pred, t_act))
+                elif h == 1:
+                    if f"{base_date} 16:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                        filtered.append((jam_val, t_pred, t_act))
+            for jam_val, t_pred, t_act in filtered:
                 out[h_str]["waktu"].append(jam_val)
                 out[h_str]["prediksi"].append(t_pred)
                 out[h_str]["aktual"].append(t_act)
@@ -148,8 +159,19 @@ def main():
 
         for h in HOR:
             h_str = str(h)
-            sliced = temp_data[h_str][-a.max_points:]
-            for jam_val, t_pred, t_act in sliced:
+            filtered = []
+            base_date = "2026-06-24" if a.lokasi == 3 else "2026-06-15"
+            for jam_val, t_pred, t_act in temp_data[h_str]:
+                if h == 6:
+                    if f"{base_date} 12:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                        filtered.append((jam_val, t_pred, t_act))
+                elif h == 3:
+                    if f"{base_date} 15:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                        filtered.append((jam_val, t_pred, t_act))
+                elif h == 1:
+                    if f"{base_date} 16:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                        filtered.append((jam_val, t_pred, t_act))
+            for jam_val, t_pred, t_act in filtered:
                 out[h_str]["waktu"].append(jam_val)
                 out[h_str]["prediksi"].append(t_pred)
                 out[h_str]["aktual"].append(t_act)

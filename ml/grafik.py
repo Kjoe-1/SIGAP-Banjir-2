@@ -26,8 +26,8 @@ log = logging.getLogger("sigap-grafik")
 BASE = os.path.dirname(os.path.abspath(__file__))
 CHART_PATH = os.path.join(BASE, "current_prediction.png")
 
-JAM_X = [0, 1, 3, 6, 12, 24]  # 0 = sekarang
-HKUNCI = ["1", "3", "6", "12", "24"]
+JAM_X = [0, 1, 3, 6]  # 0 = sekarang
+HKUNCI = ["1", "3", "6"]
 WARNA = {"AMAN": "#2ecc71", "WASPADA": "#f1c40f", "SIAGA": "#e74c3c"}
 
 
@@ -67,7 +67,7 @@ def _render(hasil: dict, stempel: str):
     ax.set_xlabel("Jam ke depan (dari pembacaan sensor terakhir)")
     ax.set_ylabel("Tinggi air (cm)")
     ax.set_xticks(JAM_X)
-    ax.set_xticklabels(["sekarang", "1j", "3j", "6j", "12j", "24j"])
+    ax.set_xticklabels(["sekarang", "1j", "3j", "6j"])
     ax.grid(True, alpha=0.3)
     if ada_data:
         from matplotlib.patches import Patch
@@ -202,7 +202,7 @@ def _render_realtime(lok: int, horizon: int, pred_out: dict) -> bytes | None:
     idx_now = len(kat) - 1
 
     sel_idx = None
-    for h in (1, 3, 6, 12, 24):
+    for h in (1, 3, 6):
         v = (pr.get(str(h)) or {}).get("tinggi_air_cm")
         if v is not None:
             kat.append(_lbl(f"+{h}j", h))

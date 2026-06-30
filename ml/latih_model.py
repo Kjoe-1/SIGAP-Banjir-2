@@ -29,5 +29,5 @@ FIT2 = ['lag1','lag2','lag3','lag6','tren','jam_hari']
 X2 = pd.DataFrame({'lag1': s2.shift(1), 'lag2': s2.shift(2), 'lag3': s2.shift(3), 'lag6': s2.shift(6),
                    'tren': s2.shift(1) - s2.shift(2), 'jam_hari': full.hour}, index=full)
 latih(X2, {h: s2.shift(-h) for h in HOR}, FIT2,
-      {"ref": 545, "t_waspada_dist": t_was2, "t_siaga_dist": t_sia2, "tipe": "forecast_tren", "nama": "Kalikobor"}, "lok2")
+      {"ref": 545, "t_waspada_dist": t_was2, "t_siaga_dist": t_sia2, "tipe": "forecast_tren", "nama": "kalibokor"}, "lok2")
 print("Lokasi 3: tanpa model (klasifikasi via threshold, lihat model/lok3_meta.json)")

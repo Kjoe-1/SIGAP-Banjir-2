@@ -2,8 +2,23 @@ let activeLokasi = 3;
 const LOKASI_DATA = {
   1: { name: "Pucanganom", ml: 1 },
   2: { name: "UHT", ml: 2 },
-  3: { name: "Kalikobor", ml: 3 },
+  3: { name: "kalibokor", ml: 3 },
 };
+
+function resetHorizon(h) {
+  window._horizon = h;
+  const container = document.getElementById("horizonTabs");
+  if (!container) return;
+  
+  container.querySelectorAll(".horizon-btn").forEach((btn) => {
+    btn.className = "horizon-btn px-2 py-1 border-2 border-primary bg-surface font-label-caps hover:bg-primary hover:text-on-primary transition-colors";
+  });
+  
+  const activeBtn = container.querySelector(`[data-h="${h}"]`);
+  if (activeBtn) {
+    activeBtn.className = "horizon-btn px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-bold translate-y-[-2px] brutal-shadow";
+  }
+}
 
 function setLokasi(fe) {
   activeLokasi = fe;
@@ -19,6 +34,27 @@ function setLokasi(fe) {
     activeEl.className = "flex items-center gap-2 px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-bold brutal-shadow active:scale-95 transition-transform cursor-pointer";
   }
 
+  // Update dynamic threshold labels in legend
+  const labelAman = document.getElementById("legend-aman");
+  const labelWaspada = document.getElementById("legend-waspada");
+  const labelSiaga = document.getElementById("legend-siaga");
+
+  if (labelAman && labelWaspada && labelSiaga) {
+    if (fe === 1) {
+      labelAman.innerText = "AMAN (< 110 cm)";
+      labelWaspada.innerText = "WASPADA (110-130 cm)";
+      labelSiaga.innerText = "SIAGA (≥ 130 cm)";
+    } else if (fe === 2) {
+      labelAman.innerText = "AMAN (< 250 cm)";
+      labelWaspada.innerText = "WASPADA (250-285 cm)";
+      labelSiaga.innerText = "SIAGA (≥ 285 cm)";
+    } else if (fe === 3) {
+      labelAman.innerText = "AMAN (< 120 cm)";
+      labelWaspada.innerText = "WASPADA (120-150 cm)";
+      labelSiaga.innerText = "SIAGA (≥ 150 cm)";
+    }
+  }
+
   resetHorizon("6");
   muatData();
 }
@@ -27,14 +63,7 @@ document.getElementById("navLok1").onclick = () => setLokasi(1);
 document.getElementById("navLok2").onclick = () => setLokasi(2);
 document.getElementById("navLok3").onclick = () => setLokasi(3);
 
-function resetHorizon(h) {
-  document.querySelectorAll(".horizon-btn").forEach((b) => {
-    b.className = "horizon-btn px-2 py-1 border-2 border-primary bg-surface text-primary font-label-caps hover:bg-primary/10 transition-colors cursor-pointer";
-  });
-  const btn = document.querySelector(`.horizon-btn[data-h="${h}"]`);
-  if (btn) btn.className = "horizon-btn px-2 py-1 border-2 border-primary bg-primary text-on-primary font-label-caps pointer-events-none";
-  window._horizon = h;
-}
+-
 
 document.getElementById("horizonTabs").addEventListener("click", (e) => {
   const btn = e.target.closest(".horizon-btn");
@@ -64,74 +93,226 @@ async function muatPrediksi() {
     const pred = data.prediksi;
     const p1 = pred ? pred["1"] : null;
 
-    document.getElementById("metricStatus").innerText = skrg.status;
-    document.getElementById("metricStatusDesc").innerText = data.fallback_demo
-      ? "⚠️ DATA DEMO (koneksi sensor gagal)"
-      : (data.catatan || "Kondisi Normal");
+    const statusEl = document.getElementById("metricStatus");
+    if (statusEl) {
+      statusEl.innerText = skrg.status;
+      if (skrg.status === "AMAN") {
+        statusEl.style.color = "#10b981";
+      } else if (skrg.status === "WASPADA") {
+        statusEl.style.color = "#eab308";
+      } else if (skrg.status === "SIAGA") {
+        statusEl.style.color = "#ef4444";
+      } else {
+        statusEl.style.color = "";
+      }
+    }
+
+    const statusDescEl = document.getElementById("metricStatusDesc");
+    if (statusDescEl) {
+      statusDescEl.innerText = data.fallback_demo
+        ? "⚠️ DATA DEMO (koneksi sensor gagal)"
+        : (data.catatan || "Kondisi Normal");
+      if (skrg.status === "AMAN") {
+        statusDescEl.style.color = "#10b981";
+      } else if (skrg.status === "WASPADA") {
+        statusDescEl.style.color = "#eab308";
+      } else if (skrg.status === "SIAGA") {
+        statusDescEl.style.color = "#ef4444";
+      } else {
+        statusDescEl.style.color = "";
+      }
+    }
+
     document.getElementById("metricTinggi").innerText = skrg.tinggi_air_cm != null ? skrg.tinggi_air_cm : "-";
     document.getElementById("metricTrend").innerText = (skrg.distance_cm != null ? "Jarak: " + skrg.distance_cm + " cm" : "-");
 
     const maxH = 300;
     const tinggi = skrg.tinggi_air_cm || 0;
     const gaugeNow = document.getElementById("gaugeNow");
-    if (gaugeNow) gaugeNow.style.height = Math.min(tinggi / maxH * 100, 95) + "%";
+    if (gaugeNow) {
+      gaugeNow.style.height = Math.min(tinggi / maxH * 100, 95) + "%";
+      gaugeNow.className = "absolute bottom-0 left-0 right-0 border-t-2 border-primary transition-all duration-1000 " +
+        (skrg.status === "SIAGA" ? "bg-danger" : skrg.status === "WASPADA" ? "bg-warning" : "bg-success");
+    }
 
     if (p1 && p1.status !== "tidak_tersedia") {
       document.getElementById("metricPred1").innerText = p1.tinggi_air_cm != null ? p1.tinggi_air_cm : "-";
-      document.getElementById("metricPred1Label").innerText = p1.status + (p1.keandalan ? " (" + p1.keandalan + ")" : "");
+      
+      const predLabel = document.getElementById("metricPred1Label");
+      if (predLabel) {
+        predLabel.innerText = p1.status + (p1.keandalan ? " (" + p1.keandalan + ")" : "");
+        if (p1.status === "AMAN") {
+          predLabel.style.color = "#10b981";
+        } else if (p1.status === "WASPADA") {
+          predLabel.style.color = "#eab308";
+        } else if (p1.status === "SIAGA") {
+          predLabel.style.color = "#ef4444";
+        } else {
+          predLabel.style.color = "";
+        }
+      }
+
       const gaugePred = document.getElementById("gaugePred");
-      if (gaugePred) gaugePred.style.height = Math.min((p1.tinggi_air_cm || 0) / maxH * 100, 95) + "%";
+      if (gaugePred) {
+        gaugePred.style.height = Math.min((p1.tinggi_air_cm || 0) / maxH * 100, 95) + "%";
+        gaugePred.className = "absolute bottom-0 left-0 right-0 border-t-2 border-primary transition-all duration-1000 " +
+          (p1.status === "SIAGA" ? "bg-danger" : p1.status === "WASPADA" ? "bg-warning" : "bg-success");
+      }
     }
 
     const badgeEl = document.getElementById("sidebarKeandalan");
     if (badgeEl) badgeEl.innerText = data.tipe === "klasifikasi" ? "klasifikasi" : (p1 ? p1.keandalan || "-" : "-");
 
-    // Forecast bars (7 history bars + 5 prediction bars)
-    const barContainer = document.getElementById("forecastBars");
-    if (barContainer && (pred || data.histori)) {
-      const H = [1, 3, 6, 12, 24];
-      const bars = barContainer.children;
-      const barCount = bars.length;
-      const history = data.histori || [];
-      for (let i = 0; i < barCount; i++) {
-        const bar = bars[i];
-        let h = 10, cls = "bg-primary border border-primary", label = "-";
-
-        if (i < barCount - H.length) {
-          // Historical data (first 7 bars)
-          const hIdx = i - (barCount - H.length - history.length); // align to right if history is shorter than 7
-          const histPoint = hIdx >= 0 && hIdx < history.length ? history[hIdx] : null;
-          if (histPoint && histPoint.tinggi_air_cm != null) {
-            h = Math.min(histPoint.tinggi_air_cm / maxH * 100, 95);
-            label = histPoint.tinggi_air_cm + "cm";
-            cls = histPoint.status === "SIAGA"
-              ? "bg-secondary-container halftone-pink border-2 border-primary shadow-[2px_0_0_0_#094e87] z-10"
-              : histPoint.status === "WASPADA"
-                ? "bg-surface-variant stripe-bg border border-primary border-dashed"
-                : "bg-primary border border-primary";
-          }
-        } else {
-          // Forecast data (last 5 bars)
-          const idx = H[i - (barCount - H.length)];
-          const p = pred ? pred[String(idx)] : null;
-          if (p && p.tinggi_air_cm != null) {
-            h = Math.min(p.tinggi_air_cm / maxH * 100, 95);
-            label = p.tinggi_air_cm + "cm";
-            cls = p.status === "SIAGA"
-              ? "bg-secondary-container halftone-pink border-2 border-primary shadow-[2px_0_0_0_#094e87] z-10"
-              : p.status === "WASPADA"
-                ? "bg-surface-variant stripe-bg border border-primary border-dashed"
-                : "bg-primary border border-primary";
-          }
-        }
-        bar.style.height = h + "%";
-        bar.className = "flex-1 " + cls + " relative group cursor-pointer transition-all duration-500";
-        const tip = bar.querySelector("div");
-        if (tip) tip.innerText = label;
-      }
-    }
+    // Update forecast line chart
+    updateForecastChart(data);
   } catch (e) {
     console.error("Prediksi error:", e);
+  }
+}
+
+let forecastChart = null;
+
+function updateForecastChart(data) {
+  const ctx = document.getElementById("forecastChart");
+  if (!ctx) return;
+
+  const skrg = data.sekarang || {};
+  const pred = data.prediksi || {};
+  const thresholds = data.ambang || { waspada: 120, siaga: 150 };
+
+  const labels = [];
+  const predData = [];
+
+  // Add 1h, 3h, 6h predictions
+  const H = [1, 3, 6];
+  H.forEach((hVal) => {
+    labels.push("+" + hVal + " Jam");
+    const p = pred[String(hVal)];
+    predData.push(p && p.tinggi_air_cm != null ? p.tinggi_air_cm : null);
+  });
+
+  const totalPoints = labels.length;
+  const waspadaLine = Array(totalPoints).fill(thresholds.waspada);
+  const siagaLine = Array(totalPoints).fill(thresholds.siaga);
+
+  if (forecastChart) {
+    forecastChart.data.labels = labels;
+    forecastChart.data.datasets[0].data = predData;
+    forecastChart.data.datasets[1].data = waspadaLine;
+    forecastChart.data.datasets[2].data = siagaLine;
+    forecastChart.update();
+  } else {
+    // Set default font to match the brutalist styling
+    Chart.defaults.font.family = "'Work Sans', sans-serif";
+    Chart.defaults.font.size = 10;
+    Chart.defaults.color = "#000000";
+
+    forecastChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "PREDIKSI ML",
+            data: predData,
+            borderColor: "#1d70b8",
+            backgroundColor: "transparent",
+            borderWidth: 3,
+            tension: 0.2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: "#1d70b8",
+          },
+          {
+            label: "AMBANG WASPADA",
+            data: waspadaLine,
+            borderColor: "#eab308",
+            borderDash: [3, 3],
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false,
+          },
+          {
+            label: "AMBANG SIAGA",
+            data: siagaLine,
+            borderColor: "#ef4444",
+            borderDash: [3, 3],
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              font: {
+                family: "'Courier Prime', monospace",
+                weight: 'bold'
+              }
+            }
+          },
+          tooltip: {
+            enabled: true,
+            mode: "index",
+            intersect: false,
+            backgroundColor: "#FFFDF0",
+            titleColor: "#000000",
+            bodyColor: "#000000",
+            borderColor: "#000000",
+            borderWidth: 2,
+            cornerRadius: 0,
+            titleFont: { weight: 'bold' },
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                  label += context.parsed.y + ' cm';
+                }
+                return label;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              color: "rgba(9, 78, 135, 0.05)"
+            },
+            ticks: {
+              font: {
+                family: "'Courier Prime', monospace",
+                weight: 'bold'
+              }
+            }
+          },
+          y: {
+            grid: {
+              color: "rgba(9, 78, 135, 0.08)"
+            },
+            beginAtZero: true,
+            grace: "10%",
+            ticks: {
+              font: {
+                family: "'Courier Prime', monospace",
+                weight: 'bold'
+              },
+              callback: function(value) {
+                return value + " cm";
+              }
+            }
+          }
+        }
+      }
+    });
   }
 }
 
@@ -256,9 +437,15 @@ async function muatBanding() {
 
     // Stats
     const diffs = hData.prediksi.map((p, i) => Math.abs(p - hData.aktual[i]));
-    const avgDiff = diffs.reduce((a, b) => a + b, 0) / diffs.length;
-    const accuracy = Math.max(0, Math.min(100, 100 - avgDiff * 2));
-    document.getElementById("bandingAkurasi").innerText = accuracy.toFixed(1) + "%";
+    const avgDiff = diffs.reduce((a, b) => a + b, 0) / diffs.length;   // MAE (cm)
+
+    // Ketepatan = persentase prediksi yang meleset <= toleransi (metrik bermakna,
+    // menggantikan rumus lama "100 - MAE*2" yang tidak punya arti statistik).
+    const TOLERANSI_CM = 15;
+    const tepat = diffs.filter((d) => d <= TOLERANSI_CM).length;
+    const ketepatan = (tepat / diffs.length) * 100;
+
+    document.getElementById("bandingAkurasi").innerText = ketepatan.toFixed(0) + "%";
     document.getElementById("bandingDeviasi").innerText = "± " + avgDiff.toFixed(1) + " cm";
 
     // Format dates nicely for labels
@@ -291,4 +478,7 @@ async function muatBanding() {
   }
 }
 
-muatData();
+
+
+setLokasi(3);
+

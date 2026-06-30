@@ -54,7 +54,7 @@ Field `keandalan` per prediksi: `andal` | `indikatif` | `tidak_tersedia`. **Tamp
 | Lokasi | Tipe | Forecasting | Catatan |
 |---|---|---|---|
 | **1 — UHT** | `forecast_hujan` | **Andal** (recall bahaya 1j ≈ 93%) | Badan air alami, digerakkan hujan |
-| **2 — Kalikobor** | `forecast_tren` | **Indikatif** (recall bahaya ≈ 27%) | Rumah pompa; pompa tak terobservasi |
+| **2 — kalibokor** | `forecast_tren` | **Indikatif** (recall bahaya ≈ 27%) | Rumah pompa; pompa tak terobservasi |
 | **3 — Pucanganom** | `klasifikasi` | **Tidak ada** | Data ~10 hari → hanya status saat ini |
 
 ## Mode realtime (DB) — langkah berikutnya

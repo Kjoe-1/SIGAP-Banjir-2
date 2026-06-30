@@ -33,6 +33,14 @@
 .border-secondary-container { border-color: #1d70b8; }
 .border-primary\/20 { border-color: rgba(9, 78, 135, 0.2); }
 
+/* ===== STATUS CARD COLORS ===== */
+.bg-success { background-color: #10b981 !important; }
+.bg-warning { background-color: #eab308 !important; }
+.bg-danger { background-color: #ef4444 !important; }
+.text-success { color: #10b981 !important; }
+.text-warning { color: #eab308 !important; }
+.text-danger { color: #ef4444 !important; }
+
 /* ===== FONTS ===== */
 .font-body-base { font-family: arial, serif; font-size: 16px; line-height: 24px; font-weight: 400; }
 .font-label-caps { font-family: 'Courier Prime', monospace; font-size: 12px; line-height: 16px; letter-spacing: 0.08em; font-weight: 700; }
@@ -119,14 +127,14 @@
 .nclose:hover { opacity: 1; }
 
 /* ===== STATUS BAR ===== */
-.status-bar { position: relative; height: 6px; background: #e2e8f0; border: 1px solid #094e87; }
+.status-bar { position: relative; height: 6px; background: #eab308; border: 1px solid #094e87; }
 .status-bar::before {
     content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-    width: 33.33%; background: #38bdf8; border-right: 1px solid #094e87;
+    width: 33.33%; background: #10b981; border-right: 1px solid #094e87;
 }
 .status-bar::after {
     content: ''; position: absolute; left: 66.66%; top: 0; bottom: 0;
-    width: 33.34%; background: #1d70b8; border-left: 1px solid #094e87;
+    width: 33.34%; background: #ef4444; border-left: 1px solid #094e87;
 }
 .indicator {
     position: absolute; top: -3px; width: 4px; height: 12px;

@@ -14,10 +14,7 @@
 
 <!-- Mobile Top Bar -->
 <div class="md:hidden flex justify-between items-center px-4 py-2 w-full sticky top-0 z-50 bg-surface border-b-2 border-primary brutal-shadow">
-    <div class="flex items-center gap-2">
-        <img src="logo.jpeg" alt="SIGAP Logo" class="h-8 w-8 rounded border border-primary object-cover">
-        <div class="font-headline-md uppercase tracking-tighter text-primary">SECTOR_MONITOR</div>
-    </div>
+    <div class="font-headline-md uppercase tracking-tighter text-primary">SECTOR_MONITOR</div>
     <button class="p-2 border-2 border-primary active:translate-x-[2px] active:translate-y-[2px] brutal-shadow active:shadow-none bg-surface-container">
         <span class="material-symbols-outlined text-primary">menu</span>
     </button>
@@ -25,29 +22,23 @@
 
 <!-- Sidebar -->
 <nav class="hidden md:flex flex-col h-screen py-6 gap-4 bg-surface-container border-r-2 border-primary sticky top-0 w-56 shrink-0 z-40">
-    <div class="px-4 mb-6 flex flex-col gap-2">
-        <div class="flex items-center gap-3">
-            <img src="logo.jpeg" alt="SIGAP Logo" class="h-10 w-10 rounded border-2 border-primary object-cover brutal-shadow">
-            <div>
-                <div class="font-headline-md text-primary text-shadow-riso uppercase tracking-tighter leading-tight"></div>
-                <div class="font-label-caps text-on-surface-variant -mt-1"></div>
-            </div>
-        </div>
+    <div class="px-4 mb-6">
+        <div class="font-headline-md text-primary text-shadow-riso uppercase tracking-tighter">SECTOR_MONITOR</div>
         <div class="font-label-caps text-on-surface-variant mt-1">SIGAP_BANJIR</div>
     </div>
     <div class="flex-1 overflow-y-auto px-2 flex flex-col gap-2">
         <div class="font-label-caps text-outline px-2 mb-1">ZONES</div>
         <a id="navLok1" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:scale-95 transition-transform cursor-pointer" data-lokasi="1">
-            <span class="material-symbols-outlined">ssid_chart</span>
+            <span class="material-symbols-outlined">analytics</span>
             <span class="font-label-caps uppercase tracking-widest" id="navLok1Name">PUCANGANOM</span>
         </a>
         <a id="navLok2" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:scale-95 transition-transform cursor-pointer" data-lokasi="2">
-            <span class="material-symbols-outlined">ssid_chart</span>
+            <span class="material-symbols-outlined">analytics</span>
             <span class="font-label-caps uppercase tracking-widest" id="navLok2Name">UHT</span>
         </a>
         <a id="navLok3" class="flex items-center gap-2 px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-bold brutal-shadow active:scale-95 transition-transform cursor-pointer" data-lokasi="3">
-            <span class="material-symbols-outlined">ssid_chart</span>
-            <span class="font-label-caps uppercase tracking-widest" id="navLok3Name">KALIKOBOR</span>
+            <span class="material-symbols-outlined">analytics</span>
+            <span class="font-label-caps uppercase tracking-widest" id="navLok3Name">kalibokor</span>
         </a>
     </div>
     <div class="mt-auto px-2 flex flex-col gap-2 pb-4">
@@ -69,7 +60,7 @@
             <h1 class="font-display-lg text-primary uppercase tracking-tighter text-shadow-riso mb-2">Analitik &amp; Perbandingan</h1>
             <div class="flex items-center gap-2">
                 <span class="inline-block w-3 h-3 rounded-full bg-tertiary-fixed animate-pulse border border-primary"></span>
-                <span class="font-label-caps text-on-surface-variant">LOKASI: <span id="headerLokasi">Kalikobor</span></span>
+                <span class="font-label-caps text-on-surface-variant">LOKASI: <span id="headerLokasi">kalibokor</span></span>
             </div>
         </div>
         <a href="/dashboard.html" class="mt-4 md:mt-0 flex items-center gap-2 px-4 py-2 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all rotate-1">
@@ -139,37 +130,15 @@
         <!-- Forecast Chart -->
         <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-xl p-0 flex flex-col">
             <div class="border-b-2 border-primary bg-surface-container-highest p-3 px-4 flex flex-wrap justify-between items-center gap-2">
-                <h2 class="font-headline-md text-primary uppercase tracking-tighter">Forecast <span id="forecastLokasiLabel">Kalikobor</span></h2>
-                <div class="flex gap-3 font-label-caps">
-                    <div class="flex items-center gap-1"><div class="w-4 h-4 border border-primary bg-tertiary-fixed-dim halftone-bg"></div><span>AMAN</span></div>
-                    <div class="flex items-center gap-1"><div class="w-4 h-4 border border-primary bg-surface-variant stripe-bg"></div><span>WASPADA</span></div>
-                    <div class="flex items-center gap-1"><div class="w-4 h-4 border border-primary bg-secondary-container halftone-pink"></div><span>SIAGA</span></div>
+                <h2 class="font-headline-md text-primary uppercase tracking-tighter">Forecast <span id="forecastLokasiLabel">kalibokor</span></h2>
+                <div class="flex gap-3 font-label-caps flex-wrap">
+                    <div class="flex items-center gap-1"><div class="w-4 h-4 border border-primary bg-success"></div><span id="legend-aman" style="color: #10b981;">AMAN</span></div>
+                    <div class="flex items-center gap-1"><div class="w-4 h-4 border border-primary bg-warning"></div><span id="legend-waspada" style="color: #eab308;">WASPADA</span></div>
+                    <div class="flex items-center gap-1"><div class="w-4 h-4 border border-primary bg-danger"></div><span id="legend-siaga" style="color: #ef4444;">SIAGA</span></div>
                 </div>
             </div>
-            <div class="p-4 relative w-full h-80 bg-surface grid-bg overflow-hidden flex items-end">
-                <div class="absolute left-0 right-0 top-[20%] border-t-2 border-dashed border-secondary-container flex items-center justify-end px-2 z-0">
-                    <span class="font-label-caps text-secondary-container bg-surface px-1 -translate-y-1/2">SIAGA</span>
-                </div>
-                <div class="absolute left-0 right-0 top-[50%] border-t-2 border-dashed border-primary flex items-center justify-end px-2 z-0">
-                    <span class="font-label-caps text-primary bg-surface px-1 -translate-y-1/2">WASPADA</span>
-                </div>
-                <div class="w-full h-full flex items-end gap-1 md:gap-2 pt-8 z-10" id="forecastBars">
-                    <div class="flex-1 bg-primary border border-primary h-[30%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">40cm</div></div>
-                    <div class="flex-1 bg-primary border border-primary h-[35%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">55cm</div></div>
-                    <div class="flex-1 bg-primary border border-primary h-[40%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">60cm</div></div>
-                    <div class="flex-1 bg-primary border border-primary h-[48%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">90cm</div></div>
-                    <div class="flex-1 bg-tertiary-fixed-dim halftone-bg border-2 border-primary h-[55%] relative group cursor-pointer shadow-[2px_0_0_0_#000] -translate-y-1"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">105cm</div></div>
-                    <div class="flex-1 bg-surface-variant stripe-bg border border-primary border-dashed h-[60%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">115cm</div></div>
-                    <div class="flex-1 bg-surface-variant stripe-bg border border-primary border-dashed h-[65%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">125cm</div></div>
-                    <div class="flex-1 bg-surface-variant stripe-bg border border-primary border-dashed h-[75%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">140cm</div></div>
-                    <div class="flex-1 bg-secondary-container halftone-pink border-2 border-primary h-[82%] relative group cursor-pointer z-10 shadow-[2px_0_0_0_#000]"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-secondary-container text-on-secondary font-label-caps text-xs p-1 whitespace-nowrap z-20">155cm</div></div>
-                    <div class="flex-1 bg-secondary-container halftone-pink border-2 border-primary h-[85%] relative group cursor-pointer z-10 shadow-[2px_0_0_0_#000]"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-secondary-container text-on-secondary font-label-caps text-xs p-1 whitespace-nowrap z-20">160cm</div></div>
-                    <div class="flex-1 bg-surface-variant stripe-bg border border-primary border-dashed h-[70%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">130cm</div></div>
-                    <div class="flex-1 bg-surface-variant stripe-bg border border-primary border-dashed h-[60%] relative group cursor-pointer"><div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-caps text-xs p-1 whitespace-nowrap z-20">110cm</div></div>
-                </div>
-            </div>
-            <div class="border-t-2 border-primary bg-surface p-1 flex justify-between font-label-caps text-label-caps text-primary px-4">
-                <span>-12h</span><span>-6h</span><span id="forecastNowLabel">NOW</span><span>+6h</span><span>+12h</span><span>+24h</span>
+            <div class="p-3 bg-surface relative h-80 grid-bg">
+                <canvas id="forecastChart"></canvas>
             </div>
         </div>
 
@@ -179,11 +148,9 @@
                 <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow p-3 rotate-1">
                     <h3 class="font-headline-md text-primary mb-2 uppercase">Horizon</h3>
                     <div class="flex flex-wrap gap-1" id="horizonTabs">
-                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface text-primary font-label-caps hover:bg-primary/10 transition-colors cursor-pointer" data-h="1">1H</button>
-                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface text-primary font-label-caps hover:bg-primary/10 transition-colors cursor-pointer" data-h="3">3H</button>
-                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-primary text-on-primary font-label-caps pointer-events-none" data-h="6">6H</button>
-                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface text-primary font-label-caps hover:bg-primary/10 transition-colors cursor-pointer" data-h="12">12H</button>
-                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface text-primary font-label-caps hover:bg-primary/10 transition-colors cursor-pointer" data-h="24">24H</button>
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface font-label-caps hover:bg-primary hover:text-on-primary transition-colors" data-h="1">1H</button>
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-surface font-label-caps hover:bg-primary hover:text-on-primary transition-colors" data-h="3">3H</button>
+                        <button class="horizon-btn px-2 py-1 border-2 border-primary bg-secondary text-on-secondary font-label-caps translate-y-[-2px] brutal-shadow" data-h="6">6H</button>
                     </div>
                 </div>
                 <div class="bg-surface-container-highest border-2 border-primary p-4 flex items-center gap-4 relative overflow-hidden">
@@ -191,12 +158,12 @@
                         <span class="font-label-caps text-xs text-secondary-container font-bold">AI</span>
                     </div>
                     <div class="flex-1">
-                        <div class="font-label-caps text-on-surface-variant mb-1">Akurasi Model</div>
-                        <div class="font-stat-lg text-primary" id="bandingAkurasi">87.4%</div>
+                        <div class="font-label-caps text-on-surface-variant mb-1">Ketepatan (&plusmn;15 cm)</div>
+                        <div class="font-stat-lg text-primary" id="bandingAkurasi">-</div>
                     </div>
                     <div class="flex-1 border-l-2 border-primary pl-4">
-                        <div class="font-label-caps text-on-surface-variant mb-1">Deviasi</div>
-                        <div class="font-body-bold text-secondary-container" id="bandingDeviasi">± 12.5 cm</div>
+                        <div class="font-label-caps text-on-surface-variant mb-1">Rata-rata Meleset</div>
+                        <div class="font-body-bold text-secondary-container" id="bandingDeviasi">-</div>
                     </div>
                 </div>
             </div>
@@ -205,12 +172,12 @@
                     <h2 class="font-label-caps uppercase tracking-widest">Prediksi vs Data Asli</h2>
                     <span class="material-symbols-outlined text-[18px]">ssid_chart</span>
                 </div>
-                <div class="p-4 flex-1 relative min-h-[250px] w-full bg-surface grid-bg" id="bandingChartContainer">
-                    <canvas id="bandingChart" class="w-full h-full"></canvas>
+                <div class="p-4 flex-1 relative min-h-[200px] grid-bg" id="bandingChartContainer">
+                    <canvas id="bandingChart"></canvas>
                 </div>
                 <div class="border-t-2 border-primary p-2 flex justify-center gap-4 font-label-caps bg-surface">
-                    <div class="flex items-center gap-1"><div class="w-4 h-1 bg-black"></div><span>DATA ASLI</span></div>
-                    <div class="flex items-center gap-1"><div class="w-4 h-1" style="background-color: #1d70b8;"></div><span style="color: #1d70b8;">PREDIKSI</span></div>
+                    <div class="flex items-center gap-1"><div class="w-4 h-1 bg-primary"></div><span>DATA ASLI</span></div>
+                    <div class="flex items-center gap-1"><div class="w-4 h-1 border-t-2 border-dashed border-secondary-container"></div><span class="text-secondary-container">PREDIKSI</span></div>
                     <span class="text-on-surface-variant ml-auto text-[10px]" id="bandingDateRange"></span>
                 </div>
             </div>
