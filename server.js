@@ -42,16 +42,16 @@ app.get("/api/sensor", async (req, res) => {
     if (!conn) return res.json({ status: "ok", lokasi, data: [] });
 
     const cfg = SENSOR_CFG[lokasi];
-    let queryStr = `SELECT * FROM \`${cfg.table}\` ORDER BY \`${cfg.order}\` DESC LIMIT 12`;
+    let queryStr = `SELECT *, DATE_FORMAT(\`${cfg.order}\`, '%Y-%m-%dT%H:%i:%s') AS waktu_str FROM \`${cfg.table}\` ORDER BY \`${cfg.order}\` DESC LIMIT 12`;
     if (lokasi === 2) {
-      queryStr = `SELECT *, (SELECT distance FROM esp3 WHERE esp3.time <= esp2.time ORDER BY esp3.time DESC LIMIT 1) AS distance FROM esp2 ORDER BY time DESC LIMIT 12`;
+      queryStr = `SELECT *, DATE_FORMAT(time, '%Y-%m-%dT%H:%i:%s') AS waktu_str, (SELECT distance FROM esp3 WHERE esp3.time <= esp2.time ORDER BY esp3.time DESC LIMIT 1) AS distance FROM esp2 ORDER BY time DESC LIMIT 12`;
     }
     const [rows] = await conn.query(queryStr);
 
     const data = rows.reverse().map((r) => {
       if (lokasi === 2) {
         return {
-          waktu: r.time,
+          waktu: r.waktu_str,
           temp: r.temp,
           humi: r.humi,
           curah_hujan: r.rain1h,
@@ -66,7 +66,7 @@ app.get("/api/sensor", async (req, res) => {
       }
       return {
         id: r.id,
-        waktu: r.waktu,
+        waktu: r.waktu_str,
         distance1: r.distance1,
         distance2: r.distance2,
         curah_hujan: r.curah_hujan,
