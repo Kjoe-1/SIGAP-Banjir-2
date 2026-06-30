@@ -45,9 +45,9 @@ function setLokasi(fe) {
       labelWaspada.innerText = "WASPADA (110-130 cm)";
       labelSiaga.innerText = "SIAGA (≥ 130 cm)";
     } else if (fe === 2) {
-      labelAman.innerText = "AMAN (< 250 cm)";
-      labelWaspada.innerText = "WASPADA (250-285 cm)";
-      labelSiaga.innerText = "SIAGA (≥ 285 cm)";
+      labelAman.innerText = "AMAN (< 150 cm)";
+      labelWaspada.innerText = "WASPADA (150-190 cm)";
+      labelSiaga.innerText = "SIAGA (≥ 190 cm)";
     } else if (fe === 3) {
       labelAman.innerText = "AMAN (< 120 cm)";
       labelWaspada.innerText = "WASPADA (120-150 cm)";
@@ -481,4 +481,3 @@ async function muatBanding() {
 
 
 setLokasi(3);
-

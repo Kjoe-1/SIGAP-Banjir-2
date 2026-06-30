@@ -52,13 +52,6 @@
             <span class="font-label-caps uppercase tracking-widest">KALIBOKOR</span>
         </a>
     </div>
-    <!-- Sidebar Foto -->
-    <div class="px-2 mt-4 flex flex-col gap-1 pb-2">
-        <div class="font-label-caps text-outline px-2 mb-1">DOKUMENTASI</div>
-        <div class="bg-surface border-2 border-primary brutal-shadow-sm p-1 overflow-hidden h-36 flex items-center justify-center bg-surface-container relative">
-            <img id="lokasiPhoto" src="kalibokor.png" alt="Foto Lokasi" class="max-h-full max-w-full object-contain border border-primary/20 cursor-zoom-in hover:scale-105 transition-transform duration-300" onclick="openPhotoModal(this.src, 'Peta & Foto Lokasi - ' + document.getElementById('lokasiText').innerText)"/>
-        </div>
-    </div>
     <div class="mt-auto px-2 flex flex-col gap-1 pb-4">
         <div class="h-px w-full bg-primary mb-1"></div>
         <div class="flex items-center gap-2 px-2 py-1 text-primary">
@@ -203,15 +196,9 @@
                     <span class="font-label-caps uppercase tracking-widest" id="chartTitle">TINGGI MUKA AIR</span>
                     <span class="material-symbols-outlined text-[18px]">show_chart</span>
                 </div>
-                <div class="p-3 h-72"><canvas id="rainChart"></canvas></div>
+                <div class="relative h-80"><canvas id="rainChart"></canvas></div>
             </div>
-            <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow p-0 flex flex-col items-center justify-center p-8 text-center">
-                <span class="material-symbols-outlined text-5xl text-on-surface-variant mb-2">ssid_chart</span>
-                <div class="font-label-caps text-on-surface-variant">Analitik prediksi &amp; perbandingan</div>
-                <a href="/prediksi.html" class="mt-3 px-4 py-2 border-2 border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all font-ui-action uppercase tracking-widest flex items-center gap-2">
-                    <span class="material-symbols-outlined">open_in_new</span> BUKA ANALITIK
-                </a>
-            </div>
+            
         </div>
 
         <!-- History Table -->
@@ -267,6 +254,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
 <script src="js/dashboard.js"></script>
 </body>
 </html>

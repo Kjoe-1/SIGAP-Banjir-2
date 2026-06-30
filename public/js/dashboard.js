@@ -86,6 +86,11 @@ function updateModeUI() {
 }
 
 // ================= CHART =================
+Chart.register(
+    ChartDataLabels,
+    window["chartjs-plugin-annotation"]
+);
+
 const ctx = document.getElementById("rainChart");
 const rainChart = new Chart(ctx, {
   type: "line",
@@ -102,22 +107,111 @@ const rainChart = new Chart(ctx, {
       },
     ],
   },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: { enabled: false } },
-    scales: {
-      x: {
-        ticks: {
-          maxRotation: 0,
-          autoSkip: true,
-          maxTicksLimit: 6,
-          padding: 15,
+  options:{
+
+    responsive:true,
+    maintainAspectRatio:false,
+
+    plugins:{
+
+        legend:{
+            display:true,
+            position:"top"
         },
-      },
-      y: { beginAtZero: true, grace: "10%" },
+
+        tooltip:{
+            enabled:true
+        },
+
+        datalabels:{
+            color:"#333",
+            align:"top",
+            anchor:"end",
+            font:{
+                weight:"bold",
+                size:10
+            },
+            formatter:(v)=>v.toFixed(1)
+        },
+
+        annotation:{
+            annotations:{
+
+                dasar:{
+                    type:"line",
+                    yMin:0,
+                    yMax:0,
+                    borderColor:"#2d3748",
+                    borderWidth:2,
+                    label:{
+                        display:true,
+                        content:"PANGKAL SUNGAI"
+                    }
+                },
+
+                waspada:{
+                    type:"line",
+                    yMin:120,
+                    yMax:120,
+                    borderColor:"#d69e2e",
+                    borderDash:[8,5],
+                    borderWidth:2,
+                    label:{
+                        display:true,
+                        content:"WASPADA"
+                    }
+                },
+
+                siaga:{
+                    type:"line",
+                    yMin:150,
+                    yMax:150,
+                    borderColor:"#e53e3e",
+                    borderDash:[8,5],
+                    borderWidth:2,
+                    label:{
+                        display:true,
+                        content:"SIAGA"
+                    }
+                },
+
+                bibir:{
+                    type:"line",
+                    yMin:370,
+                    yMax:370,
+                    borderColor:"#6b4f1d",
+                    borderWidth:2,
+                    label:{
+                        display:true,
+                        content:"BIBIR SUNGAI 370 cm"
+                    }
+                },
+
+                area:{
+                    type:"box",
+                    yMin:370,
+                    yMax:450,
+                    backgroundColor:"rgba(255,0,0,0.08)",
+                    borderWidth:0
+                }
+
+            }
+        }
+
     },
-  },
+
+    scales:{
+
+        y:{
+            beginAtZero:true,
+            suggestedMax:400
+        },
+
+        x:{}
+
+    }
+
+}
 });
 
 // ================= FORMAT TIME =================
@@ -152,10 +246,10 @@ function updateGauges(latest, tinggiAir, distance) {
     const baroVal = parseFloat(latest.baro) || 0;
 
     gauges = [
-      { value: tempVal.toFixed(1) + " °C", label: "Suhu", percent: Math.min((tempVal / 50) * 100, 100), fillClass: "bg-secondary-container halftone-pink" },
-      { value: humiVal.toFixed(1) + " %", label: "Kelembaban", percent: humiVal, fillClass: "bg-tertiary-fixed-dim halftone-cyan" },
-      { value: rainVal.toFixed(1) + " mm", label: "Hujan (1h)", percent: Math.min((rainVal / 30) * 100, 100), fillClass: "bg-secondary-fixed stripe-bg" },
-      { value: baroVal > 0 ? baroVal.toFixed(0) + " hPa" : "-", label: "Tekanan", percent: baroVal > 0 ? Math.min(((baroVal - 950) / 100) * 100, 100) : 0, fillClass: "bg-surface-variant" }
+      { value: tempVal.toFixed(1) + " °C", label: "Suhu", percent: Math.min((tempVal / 50) * 100, 100), fillClass: "" },
+      { value: humiVal.toFixed(1) + " %", label: "Kelembaban", percent: humiVal, fillClass: "" },
+      { value: rainVal.toFixed(1) + " mm", label: "Hujan (1h)", percent: Math.min((rainVal / 30) * 100, 100), fillClass: "" },
+      { value: baroVal > 0 ? baroVal.toFixed(0) + " hPa" : "-", label: "Tekanan", percent: baroVal > 0 ? Math.min(((baroVal - 950) / 100) * 100, 100) : 0, fillClass: "" }
     ];
   } else if (locId === 1) {
     // Pucanganom (Rainfall): curah_hujan_1h, jumlah_tip, distance1, distance2
@@ -165,8 +259,8 @@ function updateGauges(latest, tinggiAir, distance) {
     const d2 = parseFloat(latest.distance2) || 0;
 
     gauges = [
-      { value: rainVal.toFixed(1) + " mm", label: "Hujan (1h)", percent: Math.min((rainVal / 30) * 100, 100), fillClass: "bg-tertiary-fixed-dim halftone-cyan" },
-      { value: tipVal, label: "Jumlah Tip", percent: Math.min((tipVal / 50) * 100, 100), fillClass: "bg-secondary-container halftone-pink" },
+      { value: rainVal.toFixed(1) + " mm", label: "Hujan (1h)", percent: Math.min((rainVal / 30) * 100, 100), fillClass: "" },
+      { value: tipVal, label: "Jumlah Tip", percent: Math.min((tipVal / 50) * 100, 100), fillClass: "" },
       { value: d1 > 0 ? d1.toFixed(0) + " cm" : "-", label: "Jarak 1", percent: d1 > 0 ? Math.min((d1 / 600) * 100, 100) : 0, fillClass: "bg-surface-variant" },
       { value: d2 > 0 ? d2.toFixed(0) + " cm" : "-", label: "Jarak 2", percent: d2 > 0 ? Math.min((d2 / 600) * 100, 100) : 0, fillClass: "bg-surface-variant" }
     ];
@@ -177,7 +271,7 @@ function updateGauges(latest, tinggiAir, distance) {
 
     gauges = [
       { value: d1 > 0 ? d1.toFixed(0) + " cm" : "OFFLINE", label: "Sensor 1 (Jarak)", percent: d1 > 0 ? Math.min((d1 / 600) * 100, 100) : 0, fillClass: "bg-surface-variant" },
-      { value: d2 > 0 ? d2.toFixed(0) + " cm" : "OFFLINE", label: "Sensor 2 (Jarak)", percent: d2 > 0 ? Math.min((d2 / 600) * 100, 100) : 0, fillClass: "bg-secondary-container halftone-pink" }
+      { value: d2 > 0 ? d2.toFixed(0) + " cm" : "OFFLINE", label: "Sensor 2 (Jarak)", percent: d2 > 0 ? Math.min((d2 / 600) * 100, 100) : 0, fillClass: "" }
     ];
   }
 
@@ -300,7 +394,7 @@ function updateSummary(latest) {
   // Get status thresholds (official thresholds from config.py)
   const thresholds = {
     lokasi1: { waspada: 110, siaga: 130 },
-    lokasi2: { waspada: 250, siaga: 285 },
+    lokasi2: { waspada: 150, siaga: 190 },
     lokasi3: { waspada: 120, siaga: 150 },
   }[activeLocation];
 
@@ -347,9 +441,9 @@ function updateSummary(latest) {
       labelWaspada.innerText = "WASPADA (110-130 cm)";
       labelSiaga.innerText = "SIAGA (≥ 130 cm)";
     } else if (activeLocation === "lokasi2") {
-      labelAman.innerText = "AMAN (< 250 cm)";
-      labelWaspada.innerText = "WASPADA (250-285 cm)";
-      labelSiaga.innerText = "SIAGA (≥ 285 cm)";
+      labelAman.innerText = "AMAN (< 150 cm)";
+      labelWaspada.innerText = "WASPADA (150-190 cm)";
+      labelSiaga.innerText = "SIAGA (≥ 190 cm)";
     } else if (activeLocation === "lokasi3") {
       labelAman.innerText = "AMAN (< 120 cm)";
       labelWaspada.innerText = "WASPADA (120-150 cm)";
@@ -374,7 +468,7 @@ function updateHistoryTable(rows) {
   const ref = REF_HEIGHTS[activeLocation];
   const thresholds = {
     lokasi1: { waspada: 110, siaga: 130 },
-    lokasi2: { waspada: 250, siaga: 285 },
+    lokasi2: { waspada: 150, siaga: 190 },
     lokasi3: { waspada: 120, siaga: 150 },
   }[activeLocation];
 

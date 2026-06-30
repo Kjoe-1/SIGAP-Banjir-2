@@ -402,7 +402,7 @@
     height: calc(var(--spacing) * 72);
   }
   .h-80 {
-    height: calc(var(--spacing) * 80);
+    height: calc(var(--spacing) * 150);
   }
   .h-\[50\%\] {
     height: 50%;

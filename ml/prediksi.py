@@ -49,6 +49,30 @@ def _buat_fitur_lok1(df):
     df["jam_hari"]    = df["jam"].dt.hour
     df["humi"]        = df["humi_avg"]
     return df
+
+def _prediksi_historis(df, jam_target, h, b, cfg, t_was, t_sia, ref):
+    jam_asal = jam_target - pd.Timedelta(hours=h)
+    if cfg["tipe"] == "forecast_hujan":
+        row = df[df.jam == jam_asal]
+        if row.empty: return None
+        row = row.iloc[-1]
+        try: x = _fitur_lok1(row, b["fitur"])
+        except Exception: return None
+        if x is not None and any(pd.isna(v) for v in x): x = None
+    else:
+        seri = df.set_index("jam")["distance_avg"]
+        x = _fitur_lok2(seri, jam_asal, b["fitur"])
+    if x is None: return None
+    try:
+        dist_pred, st, conf = _conf(b["models"][h], x, t_was, t_sia)
+        return {
+            "tinggi_air_cm": round(ref - dist_pred, 1),
+            "status": st,
+            "confidence": conf
+        }
+    except Exception:
+        return None
+
 def _ambil_db(cfg, anchor="now", lookback=None):
     conn = _db_conn(cfg["db"]); J = f"{lookback or C.JAM_HISTORI} HOUR"
     # anchor="now": jendela dihitung dari waktu server (default, untuk alert realtime).
@@ -106,6 +130,8 @@ def main():
             out["sekarang"] = {"waktu_data": "N/A", "distance_cm": 0.0, "tinggi_air_cm": 0.0, "status": "OFFLINE"}
             out["ambang"] = {"waspada": round(meta["ref"] - meta["t_waspada_dist"], 1), "siaga": round(meta["ref"] - meta["t_siaga_dist"], 1)}
             out["prediksi"] = {str(h): {"jam_ke_depan": h, "tinggi_air_cm": None, "status": "tidak_tersedia", "confidence": None, "keandalan": "tidak_tersedia"} for h in HOR}
+            out["prediksi_lalu"] = {}
+            out["prediksi_historis"] = {}
             out["peringatan"] = {"ada": False, "status": "AMAN", "dalam_jam": 0, "pesan": "Sensor Pucanganom Offline"}
             out["catatan"] = "Tidak ada data sensor valid di database."
             print(json.dumps(out, default=str)); return
@@ -120,6 +146,8 @@ def main():
         out["sekarang"] = {"waktu_data": str(row["jam"]), "distance_cm": round(dist,1), "tinggi_air_cm": round(ref-dist,1), "status": st}
         out["ambang"] = {"waspada": round(ref - t_was_d, 1), "siaga": round(ref - t_sia_d, 1)}
         out["prediksi"] = {str(h): {"jam_ke_depan": h, "tinggi_air_cm": None, "status": "tidak_tersedia", "confidence": None, "keandalan": "tidak_tersedia"} for h in HOR}
+        out["prediksi_lalu"] = {}
+        out["prediksi_historis"] = {}
         out["peringatan"] = {"ada": st!="AMAN", "status": st, "dalam_jam": 0, "pesan": (f"Status SAAT INI: {st}" if st!="AMAN" else "Aman")}
         out["catatan"] = "Rumah pompa, data ~10 hari -> hanya klasifikasi status saat ini."
         print(json.dumps(out, default=str)); return
@@ -148,16 +176,35 @@ def main():
     out["sekarang"] = {"waktu_data": str(jam), "distance_cm": round(dist_now,1), "tinggi_air_cm": round(ref-dist_now,1), "status": st_now}
     out["ambang"] = {"waspada": round(ref - t_was, 1), "siaga": round(ref - t_sia, 1)}
     pred = {}; peringatan = None
+    pred_lalu = {}
+    pred_hist = {}
     if x is None:
         for h in HOR:
             pred[str(h)] = {"jam_ke_depan": h, "tinggi_air_cm": None, "status": "tidak_tersedia", "confidence": None, "keandalan": "tidak_tersedia"}
+            pred_lalu[str(h)] = {"tinggi_air_cm": None, "status": "tidak_tersedia", "confidence": None}
+            pred_hist[str(h)] = {"tinggi_air_cm": None, "status": "tidak_tersedia", "confidence": None}
     else:
         for h in HOR:
             dist, st, conf = _conf(b["models"][h], x, t_was, t_sia)
             pred[str(h)] = {"jam_ke_depan": h, "tinggi_air_cm": round(ref-dist,1), "status": st, "confidence": conf, "keandalan": _keandalan(cfg["tipe"], h)}
             if peringatan is None and st in ("WASPADA","SIAGA"):
                 peringatan = {"ada": True, "status": st, "dalam_jam": h, "pesan": f"Diprediksi {st} dalam {h} jam ({int(conf*100)}% pohon model sepakat)"}
+            
+            p_lalu = _prediksi_historis(df, jam, h, b, cfg, t_was, t_sia, ref)
+            if p_lalu:
+                pred_lalu[str(h)] = p_lalu
+            else:
+                pred_lalu[str(h)] = {"tinggi_air_cm": None, "status": "tidak_tersedia", "confidence": None}
+
+            p_hist = _prediksi_historis(df, jam - pd.Timedelta(hours=h), h, b, cfg, t_was, t_sia, ref)
+            if p_hist:
+                pred_hist[str(h)] = p_hist
+            else:
+                pred_hist[str(h)] = {"tinggi_air_cm": None, "status": "tidak_tersedia", "confidence": None}
+
     out["prediksi"] = pred
+    out["prediksi_lalu"] = pred_lalu
+    out["prediksi_historis"] = pred_hist
     out["peringatan"] = peringatan or {"ada": False, "status": "AMAN", "dalam_jam": None, "pesan": "Aman"}
     out["catatan"] = ("Forecasting andal (badan air alami, hujan)." if cfg["tipe"]=="forecast_hujan" else "Rumah pompa: forecasting INDIKATIF.")
     # Histori beberapa jam terakhir (untuk konteks tren di chart): aktual s/d "sekarang".
