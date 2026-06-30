@@ -222,9 +222,15 @@ function formatTimeLabel(ts) {
 
 // ================= UPDATE SUMMARY =================
 const REF_HEIGHTS = {
-  lokasi1: 366.01,
+  lokasi1: 300.01,
   lokasi2: 466.0,
   lokasi3: 545.0,
+};
+
+const HEIGHT_CONFIGS = {
+  lokasi1: { bibir: 300, tengah: 150, pangkal: 0, waspada: 110, siaga: 130 },
+  lokasi2: { bibir: 290, tengah: 145, pangkal: 0, waspada: 150, siaga: 190 },
+  lokasi3: { bibir: 380, tengah: 190, pangkal: 0, waspada: 120, siaga: 150 },
 };
 
 // ================= UPDATE GAUGES =================
@@ -572,6 +578,107 @@ async function fetchData() {
     rainChart.data.labels = labels;
     rainChart.data.datasets[0].data = values;
     rainChart.data.datasets[0].label = "Tinggi Muka Air (cm)";
+
+    // Update dynamic annotations and scales to match configuration
+    const cfg = HEIGHT_CONFIGS[activeLocation];
+    if (cfg && rainChart.options.plugins && rainChart.options.plugins.annotation) {
+      rainChart.options.plugins.annotation.annotations = {
+        dasar: {
+          type: "line",
+          yMin: cfg.pangkal,
+          yMax: cfg.pangkal,
+          borderColor: "#2d3748",
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: "PANGKAL SUNGAI " + cfg.pangkal + " cm (dasar)",
+            position: "start",
+            backgroundColor: "#1a202c",
+            color: "#ffffff",
+            font: { weight: "bold", size: 10 },
+            padding: { top: 4, bottom: 4, left: 6, right: 6 },
+            borderRadius: 4
+          }
+        },
+        tengah: {
+          type: "line",
+          yMin: cfg.tengah,
+          yMax: cfg.tengah,
+          borderColor: "#4a5568",
+          borderDash: [5, 5],
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: "TENGAH SUNGAI " + cfg.tengah + " cm",
+            position: "start",
+            backgroundColor: "#4a5568",
+            color: "#ffffff",
+            font: { weight: "bold", size: 10 },
+            padding: { top: 4, bottom: 4, left: 6, right: 6 },
+            borderRadius: 4
+          }
+        },
+        bibir: {
+          type: "line",
+          yMin: cfg.bibir,
+          yMax: cfg.bibir,
+          borderColor: "#6b4f1d",
+          borderWidth: 2.5,
+          label: {
+            display: true,
+            content: "BIBIR SUNGAI " + cfg.bibir + " cm (titik meluap)",
+            position: "start",
+            backgroundColor: "#6b4f1d",
+            color: "#ffffff",
+            font: { weight: "bold", size: 10 },
+            padding: { top: 4, bottom: 4, left: 6, right: 6 },
+            borderRadius: 4
+          }
+        },
+        waspada: {
+          type: "line",
+          yMin: cfg.waspada,
+          yMax: cfg.waspada,
+          borderColor: "#d69e2e",
+          borderDash: [8, 5],
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: "WASPADA " + cfg.waspada,
+            position: "end",
+            backgroundColor: "transparent",
+            color: "#d69e2e",
+            font: { weight: "bold", size: 10 }
+          }
+        },
+        siaga: {
+          type: "line",
+          yMin: cfg.siaga,
+          yMax: cfg.siaga,
+          borderColor: "#e53e3e",
+          borderDash: [8, 5],
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: "SIAGA " + cfg.siaga,
+            position: "end",
+            backgroundColor: "transparent",
+            color: "#e53e3e",
+            font: { weight: "bold", size: 10 }
+          }
+        },
+        area: {
+          type: "box",
+          yMin: cfg.bibir,
+          yMax: cfg.bibir + 100,
+          backgroundColor: "rgba(255, 0, 0, 0.05)",
+          borderWidth: 0
+        }
+      };
+      if (rainChart.options.scales && rainChart.options.scales.y) {
+        rainChart.options.scales.y.suggestedMax = cfg.bibir + 50;
+      }
+    }
     rainChart.update();
 
     // Populate history table

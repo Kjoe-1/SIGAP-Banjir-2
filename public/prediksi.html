@@ -146,16 +146,17 @@
 
         <!-- Forecast Chart -->
         <div class="bg-[#FFFDF0] border-2 border-primary brutal-shadow-xl p-0 flex flex-col">
-            <div class="border-b-2 border-primary bg-surface-container-highest p-3 px-4 flex flex-wrap justify-between items-center gap-2">
-                <h2 class="font-headline-md text-primary uppercase tracking-tighter">Forecast <span id="forecastLokasiLabel">kalibokor</span></h2>
-                <div class="flex gap-3 font-label-caps flex-wrap">
-                    <div class="flex items-center gap-1"><div class="w-4 h-4 border border-primary bg-success"></div><span id="legend-aman" style="color: #10b981;">AMAN</span></div>
-                    <div class="flex items-center gap-1"><div class="w-4 h-4 border border-primary bg-warning"></div><span id="legend-waspada" style="color: #eab308;">WASPADA</span></div>
-                    <div class="flex items-center gap-1"><div class="w-4 h-4 border border-primary bg-danger"></div><span id="legend-siaga" style="color: #ef4444;">SIAGA</span></div>
-                </div>
+            <div class="border-b-2 border-primary bg-primary text-on-primary p-2 px-4 flex justify-between items-center">
+                <span class="font-label-caps uppercase tracking-widest">FORECAST: <span id="forecastLokasiLabel">kalibokor</span></span>
+                <span class="material-symbols-outlined text-[18px]">ssid_chart</span>
             </div>
             <div class="p-3 bg-surface relative h-80 grid-bg">
                 <canvas id="forecastChart"></canvas>
+            </div>
+            <div class="border-t-2 border-primary p-2 flex justify-center gap-4 font-label-caps bg-surface text-[10px] flex-wrap">
+                <div class="flex items-center gap-1"><div class="w-3 h-3 border border-primary bg-success"></div><span id="legend-aman" style="color: #10b981;">AMAN</span></div>
+                <div class="flex items-center gap-1"><div class="w-3 h-3 border border-primary bg-warning"></div><span id="legend-waspada" style="color: #eab308;">WASPADA</span></div>
+                <div class="flex items-center gap-1"><div class="w-3 h-3 border border-primary bg-danger"></div><span id="legend-siaga" style="color: #ef4444;">SIAGA</span></div>
             </div>
         </div>
 
@@ -194,7 +195,7 @@
                 </div>
                 <div class="border-t-2 border-primary p-2 flex justify-center gap-4 font-label-caps bg-surface">
                     <div class="flex items-center gap-1"><div class="w-4 h-1 bg-primary"></div><span>DATA ASLI</span></div>
-                    <div class="flex items-center gap-1"><div class="w-4 h-1 border-t-2 border-dashed border-secondary-container"></div><span class="text-secondary-container">PREDIKSI</span></div>
+                    <div class="flex items-center gap-1"><div class="w-4 h-1 border-t-2 border-dotted border-black"></div><span class="text-black">PREDIKSI</span></div>
                     <span class="text-on-surface-variant ml-auto text-[10px]" id="bandingDateRange"></span>
                 </div>
             </div>
@@ -215,6 +216,7 @@
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <script src="js/prediksi.js?v=2"></script>
 </body>
 </html>

@@ -116,17 +116,30 @@ def main():
         for h in HOR:
             h_str = str(h)
             filtered = []
-            base_date = "2026-06-24" if a.lokasi == 3 else "2026-06-15"
-            for jam_val, t_pred, t_act in temp_data[h_str]:
-                if h == 6:
-                    if f"{base_date} 12:00:00" <= jam_val <= f"{base_date} 17:00:00":
-                        filtered.append((jam_val, t_pred, t_act))
-                elif h == 3:
-                    if f"{base_date} 15:00:00" <= jam_val <= f"{base_date} 17:00:00":
-                        filtered.append((jam_val, t_pred, t_act))
-                elif h == 1:
-                    if f"{base_date} 16:00:00" <= jam_val <= f"{base_date} 17:00:00":
-                        filtered.append((jam_val, t_pred, t_act))
+            if a.lokasi == 3:
+                base_date = "2026-06-24"
+                for jam_val, t_pred, t_act in temp_data[h_str]:
+                    if h == 6:
+                        if f"{base_date} 12:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                            filtered.append((jam_val, t_pred, t_act))
+                    elif h == 3:
+                        if f"{base_date} 15:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                            filtered.append((jam_val, t_pred, t_act))
+                    elif h == 1:
+                        if f"{base_date} 16:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                            filtered.append((jam_val, t_pred, t_act))
+            else:
+                base_date = "2026-06-15"
+                for jam_val, t_pred, t_act in temp_data[h_str]:
+                    if h == 6:
+                        if f"{base_date} 15:00:00" <= jam_val <= f"{base_date} 20:00:00":
+                            filtered.append((jam_val, t_pred, t_act))
+                    elif h == 3:
+                        if f"{base_date} 17:00:00" <= jam_val <= f"{base_date} 20:00:00":
+                            filtered.append((jam_val, t_pred, t_act))
+                    elif h == 1:
+                        if f"{base_date} 18:00:00" <= jam_val <= f"{base_date} 20:00:00":
+                            filtered.append((jam_val, t_pred, t_act))
             for jam_val, t_pred, t_act in filtered:
                 out[h_str]["waktu"].append(jam_val)
                 out[h_str]["prediksi"].append(t_pred)
@@ -160,17 +173,30 @@ def main():
         for h in HOR:
             h_str = str(h)
             filtered = []
-            base_date = "2026-06-24" if a.lokasi == 3 else "2026-06-15"
-            for jam_val, t_pred, t_act in temp_data[h_str]:
-                if h == 6:
-                    if f"{base_date} 12:00:00" <= jam_val <= f"{base_date} 17:00:00":
-                        filtered.append((jam_val, t_pred, t_act))
-                elif h == 3:
-                    if f"{base_date} 15:00:00" <= jam_val <= f"{base_date} 17:00:00":
-                        filtered.append((jam_val, t_pred, t_act))
-                elif h == 1:
-                    if f"{base_date} 16:00:00" <= jam_val <= f"{base_date} 17:00:00":
-                        filtered.append((jam_val, t_pred, t_act))
+            if a.lokasi == 3:
+                base_date = "2026-06-24"
+                for jam_val, t_pred, t_act in temp_data[h_str]:
+                    if h == 6:
+                        if f"{base_date} 12:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                            filtered.append((jam_val, t_pred, t_act))
+                    elif h == 3:
+                        if f"{base_date} 15:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                            filtered.append((jam_val, t_pred, t_act))
+                    elif h == 1:
+                        if f"{base_date} 16:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                            filtered.append((jam_val, t_pred, t_act))
+            else:
+                base_date = "2026-06-15"
+                for jam_val, t_pred, t_act in temp_data[h_str]:
+                    if h == 6:
+                        if f"{base_date} 15:00:00" <= jam_val <= f"{base_date} 20:00:00":
+                            filtered.append((jam_val, t_pred, t_act))
+                    elif h == 3:
+                        if f"{base_date} 17:00:00" <= jam_val <= f"{base_date} 20:00:00":
+                            filtered.append((jam_val, t_pred, t_act))
+                    elif h == 1:
+                        if f"{base_date} 18:00:00" <= jam_val <= f"{base_date} 20:00:00":
+                            filtered.append((jam_val, t_pred, t_act))
             for jam_val, t_pred, t_act in filtered:
                 out[h_str]["waktu"].append(jam_val)
                 out[h_str]["prediksi"].append(t_pred)

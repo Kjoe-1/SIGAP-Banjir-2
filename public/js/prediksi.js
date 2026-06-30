@@ -1,3 +1,11 @@
+Chart.register(window["chartjs-plugin-annotation"]);
+
+const HEIGHT_CONFIGS = {
+  1: { bibir: 300, tengah: 150, pangkal: 0, waspada: 110, siaga: 130 },
+  2: { bibir: 290, tengah: 145, pangkal: 0, waspada: 150, siaga: 190 },
+  3: { bibir: 380, tengah: 190, pangkal: 0, waspada: 120, siaga: 150 },
+};
+
 let activeLokasi = 3;
 const LOKASI_DATA = {
   1: { name: "Pucanganom", ml: 1 },
@@ -26,7 +34,8 @@ function setLokasi(fe) {
   document.getElementById("headerLokasi").innerText = d.name;
   document.getElementById("forecastLokasiLabel").innerText = d.name;
 
-  document.querySelectorAll("[id^=navLok]").forEach((el) => {
+  // Use only anchor tags to prevent styling inner text span elements
+  document.querySelectorAll("a[id^=navLok]").forEach((el) => {
     el.className = "flex items-center gap-2 px-2 py-1 border border-primary bg-surface brutal-shadow hover:bg-surface-container-highest active:scale-95 transition-transform cursor-pointer";
   });
   const activeEl = document.getElementById("navLok" + fe);
@@ -178,28 +187,151 @@ function updateForecastChart(data) {
 
   const skrg = data.sekarang || {};
   const pred = data.prediksi || {};
-  const thresholds = data.ambang || { waspada: 120, siaga: 150 };
+  const hist = data.histori || [];
 
-  const labels = [];
+  const labels = ["-6 Jam", "-3 Jam", "-1 Jam", "now", "+1 Jam", "+3 Jam", "+6 Jam"];
   const predData = [];
+  const pointColors = [];
+  const statusColors = { AMAN: "#10b981", WASPADA: "#eab308", SIAGA: "#ef4444" };
 
-  // Add 1h, 3h, 6h predictions
-  const H = [1, 3, 6];
-  H.forEach((hVal) => {
-    labels.push("+" + hVal + " Jam");
-    const p = pred[String(hVal)];
-    predData.push(p && p.tinggi_air_cm != null ? p.tinggi_air_cm : null);
-  });
+  // -6 Jam (index length - 7)
+  const h6 = hist.length >= 7 ? hist[hist.length - 7] : null;
+  predData.push(h6 && h6.tinggi_air_cm != null ? h6.tinggi_air_cm : null);
+  pointColors.push(h6 && h6.status ? (statusColors[h6.status] || "#1d70b8") : "#1d70b8");
 
-  const totalPoints = labels.length;
-  const waspadaLine = Array(totalPoints).fill(thresholds.waspada);
-  const siagaLine = Array(totalPoints).fill(thresholds.siaga);
+  // -3 Jam (index length - 4)
+  const h3 = hist.length >= 4 ? hist[hist.length - 4] : null;
+  predData.push(h3 && h3.tinggi_air_cm != null ? h3.tinggi_air_cm : null);
+  pointColors.push(h3 && h3.status ? (statusColors[h3.status] || "#1d70b8") : "#1d70b8");
+
+  // -1 Jam (index length - 2)
+  const h1 = hist.length >= 2 ? hist[hist.length - 2] : null;
+  predData.push(h1 && h1.tinggi_air_cm != null ? h1.tinggi_air_cm : null);
+  pointColors.push(h1 && h1.status ? (statusColors[h1.status] || "#1d70b8") : "#1d70b8");
+
+  // now (current value)
+  predData.push(skrg.tinggi_air_cm != null ? skrg.tinggi_air_cm : null);
+  pointColors.push(skrg.status ? (statusColors[skrg.status] || "#1d70b8") : "#1d70b8");
+
+  // +1 Jam
+  const p1 = pred["1"];
+  predData.push(p1 && p1.tinggi_air_cm != null ? p1.tinggi_air_cm : null);
+  pointColors.push(p1 && p1.status ? (statusColors[p1.status] || "#e67e22") : "#e67e22");
+
+  // +3 Jam
+  const p3 = pred["3"];
+  predData.push(p3 && p3.tinggi_air_cm != null ? p3.tinggi_air_cm : null);
+  pointColors.push(p3 && p3.status ? (statusColors[p3.status] || "#e67e22") : "#e67e22");
+
+  // +6 Jam
+  const p6 = pred["6"];
+  predData.push(p6 && p6.tinggi_air_cm != null ? p6.tinggi_air_cm : null);
+  pointColors.push(p6 && p6.status ? (statusColors[p6.status] || "#e67e22") : "#e67e22");
+
+  const cfg = HEIGHT_CONFIGS[activeLokasi];
 
   if (forecastChart) {
     forecastChart.data.labels = labels;
     forecastChart.data.datasets[0].data = predData;
-    forecastChart.data.datasets[1].data = waspadaLine;
-    forecastChart.data.datasets[2].data = siagaLine;
+    forecastChart.data.datasets[0].pointBackgroundColor = pointColors;
+    if (cfg && forecastChart.options.plugins && forecastChart.options.plugins.annotation) {
+      forecastChart.options.plugins.annotation.annotations = {
+        dasar: {
+          type: "line",
+          yMin: cfg.pangkal,
+          yMax: cfg.pangkal,
+          borderColor: "#2d3748",
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: "PANGKAL SUNGAI " + cfg.pangkal + " cm (dasar)",
+            position: "start",
+            backgroundColor: "#1a202c",
+            color: "#ffffff",
+            font: { weight: "bold", size: 10 },
+            padding: { top: 4, bottom: 4, left: 6, right: 6 },
+            borderRadius: 4
+          }
+        },
+        tengah: {
+          type: "line",
+          yMin: cfg.tengah,
+          yMax: cfg.tengah,
+          borderColor: "#4a5568",
+          borderDash: [5, 5],
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: "TENGAH SUNGAI " + cfg.tengah + " cm",
+            position: "start",
+            backgroundColor: "#4a5568",
+            color: "#ffffff",
+            font: { weight: "bold", size: 10 },
+            padding: { top: 4, bottom: 4, left: 6, right: 6 },
+            borderRadius: 4
+          }
+        },
+        bibir: {
+          type: "line",
+          yMin: cfg.bibir,
+          yMax: cfg.bibir,
+          borderColor: "#6b4f1d",
+          borderWidth: 2.5,
+          label: {
+            display: true,
+            content: "BIBIR SUNGAI " + cfg.bibir + " cm (titik meluap)",
+            position: "start",
+            backgroundColor: "#6b4f1d",
+            color: "#ffffff",
+            font: { weight: "bold", size: 10 },
+            padding: { top: 4, bottom: 4, left: 6, right: 6 },
+            borderRadius: 4
+          }
+        },
+        waspada: {
+          type: "line",
+          yMin: cfg.waspada,
+          yMax: cfg.waspada,
+          borderColor: "#d69e2e",
+          borderDash: [8, 5],
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: "WASPADA " + cfg.waspada,
+            position: "end",
+            backgroundColor: "transparent",
+            color: "#d69e2e",
+            font: { weight: "bold", size: 10 }
+          }
+        },
+        siaga: {
+          type: "line",
+          yMin: cfg.siaga,
+          yMax: cfg.siaga,
+          borderColor: "#e53e3e",
+          borderDash: [8, 5],
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: "SIAGA " + cfg.siaga,
+            position: "end",
+            backgroundColor: "transparent",
+            color: "#e53e3e",
+            font: { weight: "bold", size: 10 }
+          }
+        },
+        area: {
+          type: "box",
+          yMin: cfg.bibir,
+          yMax: cfg.bibir + 100,
+          backgroundColor: "rgba(255, 0, 0, 0.05)",
+          borderWidth: 0
+        }
+      };
+      if (forecastChart.options.scales && forecastChart.options.scales.y) {
+        forecastChart.options.scales.y.suggestedMax = cfg.bibir + 50;
+      }
+    }
     forecastChart.update();
   } else {
     // Set default font to match the brutalist styling
@@ -207,13 +339,109 @@ function updateForecastChart(data) {
     Chart.defaults.font.size = 10;
     Chart.defaults.color = "#000000";
 
+    const annotationOpts = cfg ? {
+      annotations: {
+        dasar: {
+          type: "line",
+          yMin: cfg.pangkal,
+          yMax: cfg.pangkal,
+          borderColor: "#2d3748",
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: "PANGKAL SUNGAI " + cfg.pangkal + " cm (dasar)",
+            position: "start",
+            backgroundColor: "#1a202c",
+            color: "#ffffff",
+            font: { weight: "bold", size: 10 },
+            padding: { top: 4, bottom: 4, left: 6, right: 6 },
+            borderRadius: 4
+          }
+        },
+        tengah: {
+          type: "line",
+          yMin: cfg.tengah,
+          yMax: cfg.tengah,
+          borderColor: "#4a5568",
+          borderDash: [5, 5],
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: "TENGAH SUNGAI " + cfg.tengah + " cm",
+            position: "start",
+            backgroundColor: "#4a5568",
+            color: "#ffffff",
+            font: { weight: "bold", size: 10 },
+            padding: { top: 4, bottom: 4, left: 6, right: 6 },
+            borderRadius: 4
+          }
+        },
+        bibir: {
+          type: "line",
+          yMin: cfg.bibir,
+          yMax: cfg.bibir,
+          borderColor: "#6b4f1d",
+          borderWidth: 2.5,
+          label: {
+            display: true,
+            content: "BIBIR SUNGAI " + cfg.bibir + " cm (titik meluap)",
+            position: "start",
+            backgroundColor: "#6b4f1d",
+            color: "#ffffff",
+            font: { weight: "bold", size: 10 },
+            padding: { top: 4, bottom: 4, left: 6, right: 6 },
+            borderRadius: 4
+          }
+        },
+        waspada: {
+          type: "line",
+          yMin: cfg.waspada,
+          yMax: cfg.waspada,
+          borderColor: "#d69e2e",
+          borderDash: [8, 5],
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: "WASPADA " + cfg.waspada,
+            position: "end",
+            backgroundColor: "transparent",
+            color: "#d69e2e",
+            font: { weight: "bold", size: 10 }
+          }
+        },
+        siaga: {
+          type: "line",
+          yMin: cfg.siaga,
+          yMax: cfg.siaga,
+          borderColor: "#e53e3e",
+          borderDash: [8, 5],
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: "SIAGA " + cfg.siaga,
+            position: "end",
+            backgroundColor: "transparent",
+            color: "#e53e3e",
+            font: { weight: "bold", size: 10 }
+          }
+        },
+        area: {
+          type: "box",
+          yMin: cfg.bibir,
+          yMax: cfg.bibir + 100,
+          backgroundColor: "rgba(255, 0, 0, 0.05)",
+          borderWidth: 0
+        }
+      }
+    } : {};
+
     forecastChart = new Chart(ctx, {
       type: "line",
       data: {
         labels: labels,
         datasets: [
           {
-            label: "PREDIKSI ML",
+            label: "Tinggi Air (cm)",
             data: predData,
             borderColor: "#1d70b8",
             backgroundColor: "transparent",
@@ -221,25 +449,13 @@ function updateForecastChart(data) {
             tension: 0.2,
             pointRadius: 4,
             pointHoverRadius: 6,
-            pointBackgroundColor: "#1d70b8",
-          },
-          {
-            label: "AMBANG WASPADA",
-            data: waspadaLine,
-            borderColor: "#eab308",
-            borderDash: [3, 3],
-            borderWidth: 2,
-            pointRadius: 0,
-            fill: false,
-          },
-          {
-            label: "AMBANG SIAGA",
-            data: siagaLine,
-            borderColor: "#ef4444",
-            borderDash: [3, 3],
-            borderWidth: 2,
-            pointRadius: 0,
-            fill: false,
+            pointBackgroundColor: pointColors,
+            pointBorderColor: "#000000",
+            pointBorderWidth: 1.5,
+            segment: {
+              borderDash: (ctx) => (ctx.p1DataIndex > 3 ? [5, 5] : undefined),
+              borderColor: (ctx) => (ctx.p1DataIndex > 3 ? "#e67e22" : "#1d70b8"),
+            }
           }
         ]
       },
@@ -280,7 +496,8 @@ function updateForecastChart(data) {
                 return label;
               }
             }
-          }
+          },
+          annotation: annotationOpts
         },
         scales: {
           x: {
@@ -299,7 +516,7 @@ function updateForecastChart(data) {
               color: "rgba(9, 78, 135, 0.08)"
             },
             beginAtZero: true,
-            grace: "10%",
+            suggestedMax: cfg ? cfg.bibir + 50 : 300,
             ticks: {
               font: {
                 family: "'Courier Prime', monospace",
@@ -335,7 +552,7 @@ function initBandingChart() {
         {
           label: "DATA ASLI",
           data: [],
-          borderColor: "#000000",
+          borderColor: "#1d70b8",
           backgroundColor: "transparent",
           borderWidth: 2.5,
           tension: 0.3,
@@ -345,7 +562,8 @@ function initBandingChart() {
         {
           label: "PREDIKSI",
           data: [],
-          borderColor: "#1d70b8",
+          borderColor: "#000000",
+          borderDash: [2, 3],
           backgroundColor: "transparent",
           borderWidth: 2.5,
           tension: 0.3,
@@ -424,6 +642,20 @@ async function muatBanding() {
     if (!data.success) {
       document.getElementById("bandingAkurasi").innerText = "-";
       document.getElementById("bandingDeviasi").innerText = "-";
+      const dateLabel = document.getElementById("bandingDateRange");
+      if (dateLabel) {
+        if (activeLokasi === 1) {
+          dateLabel.innerText = "Tipe Klasifikasi (Tidak ada model forecasting untuk Pucanganom)";
+        } else {
+          dateLabel.innerText = data.message || "Gagal memuat data perbandingan";
+        }
+      }
+      if (bandingChart) {
+        bandingChart.data.labels = [];
+        bandingChart.data.datasets[0].data = [];
+        bandingChart.data.datasets[1].data = [];
+        bandingChart.update();
+      }
       return;
     }
 
@@ -462,6 +694,14 @@ async function muatBanding() {
       bandingChart.data.labels = labels;
       bandingChart.data.datasets[0].data = hData.aktual;
       bandingChart.data.datasets[1].data = hData.prediksi;
+
+      if (bandingChart.options.plugins) {
+        delete bandingChart.options.plugins.annotation;
+      }
+      if (bandingChart.options.scales && bandingChart.options.scales.y) {
+        delete bandingChart.options.scales.y.suggestedMax;
+      }
+
       bandingChart.update();
     }
 

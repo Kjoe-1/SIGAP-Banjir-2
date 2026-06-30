@@ -163,15 +163,15 @@ LOOKBACK_VIEW = 336  # 14 hari
 
 
 def _render_realtime(lok: int, horizon: int, pred_out: dict) -> bytes | None:
-    """Bar perbandingan: tinggi air sekarang vs prediksi tiap horizon, diwarnai status."""
+    """Line chart: tinggi air sekarang vs prediksi tiap horizon, diwarnai status."""
     from matplotlib.patches import Patch
+    from matplotlib.lines import Line2D
 
     s = pred_out.get("sekarang") or {}
     pr = pred_out.get("prediksi") or {}
     amb = pred_out.get("ambang") or {}
 
     # Waktu acuan = data terakhir; tiap horizon ditampilkan beserta JAM AKTUALnya
-    # (saran user: "+12 jam" langsung kelihatan jam berapa).
     from datetime import datetime, timedelta
     try:
         base_t = datetime.strptime(str(s.get("waktu_data"))[:19], "%Y-%m-%d %H:%M:%S")
@@ -181,7 +181,7 @@ def _render_realtime(lok: int, horizon: int, pred_out: dict) -> bytes | None:
     def _lbl(prefix, off):
         return prefix if base_t is None else f"{prefix}\n{(base_t + timedelta(hours=off)):%H:%M}"
 
-    # Urutan bar: histori lampau (aktual) -> Sekarang -> prediksi ke depan.
+    # Urutan data: histori lampau (aktual) -> Sekarang -> prediksi ke depan.
     histori = pred_out.get("histori") or []
     lampau = histori[:-1] if len(histori) > 1 else []  # entri terakhir = "sekarang"
 
@@ -201,7 +201,6 @@ def _render_realtime(lok: int, horizon: int, pred_out: dict) -> bytes | None:
     jenis.append("sekarang")
     idx_now = len(kat) - 1
 
-    sel_idx = None
     for h in (1, 3, 6):
         v = (pr.get(str(h)) or {}).get("tinggi_air_cm")
         if v is not None:
@@ -209,54 +208,110 @@ def _render_realtime(lok: int, horizon: int, pred_out: dict) -> bytes | None:
             nilai.append(v)
             status.append((pr.get(str(h)) or {}).get("status"))
             jenis.append("prediksi")
-            if h == horizon:
-                sel_idx = len(kat) - 1
+    
     if nilai[idx_now] is None or sum(1 for n in nilai if n is not None) <= 1:
         return None
 
-    warna = [WARNA.get(st, "#95a5a6") for st in status]
+    GEOMETRI = {
+        1: {"bibir": 300, "tengah": 150, "pangkal": 0},  # Pucanganom
+        2: {"bibir": 290, "tengah": 145, "pangkal": 0},  # UHT
+        3: {"bibir": 380, "tengah": 190, "pangkal": 0},  # Kalibokor
+    }
+    geom = GEOMETRI.get(lok, {"bibir": 380, "tengah": 190, "pangkal": 0})
+    bibir_val = geom["bibir"]
+    tengah_val = geom["tengah"]
+    pangkal_val = geom["pangkal"]
+    hw, hs = amb.get("waspada"), amb.get("siaga")
+
     fig, ax = plt.subplots(figsize=(11, 5))
     x = list(range(len(kat)))
-    bars = ax.bar(x, nilai, color=warna, edgecolor="white", zorder=2)
 
-    for i, (b, jn) in enumerate(zip(bars, jenis)):
-        if jn == "lampau":            # aktual lampau: hatched + agak transparan
-            b.set_alpha(0.55)
-            b.set_hatch("//")
-        if i == sel_idx:              # horizon yang dipilih: border tebal
-            b.set_edgecolor("#2c3e50")
-            b.set_linewidth(3)
-    for b, v in zip(bars, nilai):
-        if v is not None:
-            ax.text(b.get_x() + b.get_width() / 2, v, f"{v:g}",
-                    ha="center", va="bottom", fontsize=8)
+    # 1. Plot solid line for actual
+    x_act = x[:idx_now+1]
+    y_act = nilai[:idx_now+1]
+    ax.plot(x_act, y_act, color="#2c3e50", lw=2.5, zorder=2)
 
-    # Garis pemisah "lampau | prediksi" (tepat setelah Sekarang).
-    ax.axvline(idx_now + 0.5, color="#7f8c8d", ls=":", lw=1.2)
+    # 2. Plot dashed line for prediction (starting from Sekarang)
+    if len(x) > idx_now + 1:
+        x_pred = x[idx_now:]
+        y_pred = nilai[idx_now:]
+        ax.plot(x_pred, y_pred, color="#e67e22", ls="--", lw=2.5, zorder=2)
 
-    hw, hs = amb.get("waspada"), amb.get("siaga")
+    # 3. Plot scatter markers color-coded by status
+    warna = [WARNA.get(st, "#95a5a6") for st in status]
+    ax.scatter(x, nilai, c=warna, s=80, edgecolors="#2c3e50", linewidths=1.5, zorder=3)
+
+    # 4. Values text annotations above dots
+    for xi, yi in zip(x, nilai):
+        if yi is not None:
+            ax.annotate(f"{yi:g}", (xi, yi), textcoords="offset points", xytext=(0, 8),
+                        ha="center", fontsize=8.5, fontweight="bold", color="#2c3e50")
+
+    # 5. Geometri lines and annotations
+    ax.axhline(pangkal_val, color="#2d3748", ls="-", lw=2, zorder=1)
+    ax.text(0.02, pangkal_val, f"PANGKAL SUNGAI {pangkal_val} cm (dasar)",
+            transform=ax.get_yaxis_transform(),
+            va="center", ha="left", color="white", fontsize=8, fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="#2d3748", edgecolor="none"))
+
+    ax.axhline(tengah_val, color="#4a5568", ls="--", lw=1.5, zorder=1)
+    ax.text(0.02, tengah_val, f"TENGAH SUNGAI {tengah_val} cm",
+            transform=ax.get_yaxis_transform(),
+            va="center", ha="left", color="white", fontsize=8, fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="#4a5568", edgecolor="none"))
+
+    ax.axhline(bibir_val, color="#8b5a2b", ls="-", lw=2, zorder=1)
+    ax.text(0.02, bibir_val, f"BIBIR SUNGAI {bibir_val} cm (titik meluap)",
+            transform=ax.get_yaxis_transform(),
+            va="center", ha="left", color="white", fontsize=8, fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="#8b5a2b", edgecolor="none"))
+
+    # 6. Waspada & Siaga line and annotations
     if hw is not None:
-        ax.axhline(hw, color="#f1c40f", ls="--", lw=1.2, label=f"Ambang WASPADA ({hw:g} cm)")
+        ax.axhline(hw, color="#d69e2e", ls="--", lw=1.2, zorder=1)
+        ax.text(0.98, hw, f"WASPADA {hw:g}",
+                transform=ax.get_yaxis_transform(),
+                va="bottom", ha="right", color="#d69e2e", fontsize=8, fontweight="bold")
     if hs is not None:
-        ax.axhline(hs, color="#e74c3c", ls="--", lw=1.2, label=f"Ambang SIAGA ({hs:g} cm)")
+        ax.axhline(hs, color="#e53e3e", ls="--", lw=1.2, zorder=1)
+        ax.text(0.98, hs, f"SIAGA {hs:g}",
+                transform=ax.get_yaxis_transform(),
+                va="bottom", ha="right", color="#e53e3e", fontsize=8, fontweight="bold")
 
+    # 7. Vertical line at "Sekarang"
+    ax.axvline(idx_now, color="#7f8c8d", ls=":", lw=1.5, zorder=1)
+
+    # 8. Set ticks, title, labels and grids
     ax.set_xticks(x)
     ax.set_xticklabels(kat, fontsize=8)
     ax.set_title(f"{pred_out.get('nama_lokasi', '')} — Tren & Prediksi Tinggi Air")
-    ax.set_ylabel("Tinggi air (cm)")
+    ax.set_ylabel("Tinggi air dari dasar (cm)")
     ax.set_xlabel("← aktual (lampau)   |   Sekarang   |   prediksi →")
-    ymax = max([v for v in nilai if v is not None] + [hw or 0, hs or 0]) * 1.18
+
+    # y scale limit with padding
+    ymax = max([v for v in nilai if v is not None] + [hw or 0, hs or 0, bibir_val]) + 50
     ax.set_ylim(0, ymax)
+    ax.set_xlim(0, len(kat) - 1)
     ax.grid(True, axis="y", alpha=0.3)
 
-    leg = [Patch(color=WARNA["AMAN"], label="AMAN"),
-           Patch(color=WARNA["WASPADA"], label="WASPADA"),
-           Patch(color=WARNA["SIAGA"], label="SIAGA"),
-           Patch(facecolor="#bbbbbb", hatch="//", alpha=0.55, label="Aktual (lampau)")]
-    h_line, _ = ax.get_legend_handles_labels()
-    ax.legend(handles=leg + h_line, fontsize=8, ncol=2)
+    # 9. Fill area above Bibir line with light red
+    ax.axhspan(bibir_val, ymax + 50, color="#e53e3e", alpha=0.06, zorder=1)
 
-    fig.tight_layout()
+    # 10. Legend
+    handles = [
+        Line2D([0], [0], color="#2c3e50", lw=2, marker="o", label="Aktual"),
+        Line2D([0], [0], color="#e67e22", lw=2, ls="--", label="Prediksi"),
+        Patch(color=WARNA["AMAN"], label="AMAN"),
+        Patch(color=WARNA["WASPADA"], label="WASPADA"),
+        Patch(color=WARNA["SIAGA"], label="SIAGA")
+    ]
+    ax.legend(handles=handles, fontsize=8, ncol=3, loc="upper right")
+
+    # 11. Explanatory bottom text
+    fig.text(0.5, 0.01, "Titik = tinggi air (warna = status). Tiga garis geometri sungai: PANGKAL (dasar 0 cm), TENGAH (½ tinggi), BIBIR (titik meluap). Garis putus kuning/merah = ambang WASPADA/SIAGA.",
+             ha="center", fontsize=8, color="#555555", wrap=True)
+
+    fig.tight_layout(rect=[0, 0.05, 1, 1])
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=110)
     plt.close(fig)
