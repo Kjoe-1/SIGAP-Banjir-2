@@ -300,7 +300,26 @@ function updateSummary(latest) {
   const statDist1 = document.getElementById("statDist1");
   const statDist2 = document.getElementById("statDist2");
 
+  const lblStatus = document.getElementById("lblStatus");
+  const lblTinggi = document.getElementById("lblTinggi");
+  const lblTinggiUnit = document.getElementById("lblTinggiUnit");
+  const lblDist1 = document.getElementById("lblDist1");
+  const lblDist2 = document.getElementById("lblDist2");
+
   const setElText = (el, text) => { if (el) el.innerText = text; };
+
+  // Update Stats Row Labels dynamically based on location
+  if (activeLocation === "lokasi2") {
+    setElText(lblTinggi, "AVERAGE WINDIR");
+    setElText(lblTinggiUnit, "m/s");
+    setElText(lblDist1, "MAX WINDIR");
+    setElText(lblDist2, "ARAH");
+  } else {
+    setElText(lblTinggi, "TINGGI AIR");
+    setElText(lblTinggiUnit, "cm");
+    setElText(lblDist1, "DISTANCE 1");
+    setElText(lblDist2, "DISTANCE 2");
+  }
 
   if (!latest) {
     if (ind) ind.style.display = "none";
@@ -325,9 +344,14 @@ function updateSummary(latest) {
   const d1 = parseFloat(latest.distance1);
   const d2 = parseFloat(latest.distance2);
 
-  // Show raw distance values in stats row (with fallback to '-' if invalid or 0)
-  setElText(statDist1, d1 > 0 ? d1.toFixed(1) + " cm" : "-");
-  setElText(statDist2, d2 > 0 ? d2.toFixed(1) + " cm" : "-");
+  // Set values of Card 3 and 4 dynamically
+  if (activeLocation === "lokasi2") {
+    setElText(statDist1, latest.windmax !== undefined && latest.windmax !== null ? latest.windmax.toFixed(1) + " m/s" : "-");
+    setElText(statDist2, latest.windir !== undefined && latest.windir !== null ? latest.windir + "°" : "-");
+  } else {
+    setElText(statDist1, d1 > 0 ? d1.toFixed(1) + " cm" : "-");
+    setElText(statDist2, d2 > 0 ? d2.toFixed(1) + " cm" : "-");
+  }
 
   // Determine valid distance with fallback and glitch protection
   const ref = REF_HEIGHTS[activeLocation];
@@ -395,7 +419,13 @@ function updateSummary(latest) {
   const tinggiAirFixed = Math.max(0, tinggiAir).toFixed(1);
   
   document.getElementById("current-distance").innerHTML = `${tinggiAirFixed} <small>cm</small>`;
-  setElText(statTinggi, tinggiAirFixed);
+
+  // Set Card 2 value dynamically
+  if (activeLocation === "lokasi2") {
+    setElText(statTinggi, latest.windavg !== undefined && latest.windavg !== null ? latest.windavg.toFixed(1) : "-");
+  } else {
+    setElText(statTinggi, tinggiAirFixed);
+  }
 
   // Get status thresholds (official thresholds from config.py)
   const thresholds = {
@@ -471,6 +501,28 @@ function updateHistoryTable(rows) {
     return;
   }
 
+  // Update table headers dynamically based on location
+  const thead = document.querySelector("table thead tr");
+  if (thead) {
+    if (activeLocation === "lokasi2") {
+      thead.innerHTML = `
+        <th class="p-3 border-r-2 border-primary">Waktu</th>
+        <th class="p-3 border-r-2 border-primary">Average Windir</th>
+        <th class="p-3 border-r-2 border-primary">Max Windir</th>
+        <th class="p-3 border-r-2 border-primary">Arah</th>
+        <th class="p-3">Status</th>
+      `;
+    } else {
+      thead.innerHTML = `
+        <th class="p-3 border-r-2 border-primary">Waktu</th>
+        <th class="p-3 border-r-2 border-primary">Jarak 1</th>
+        <th class="p-3 border-r-2 border-primary">Jarak 2</th>
+        <th class="p-3 border-r-2 border-primary">Tinggi Air (cm)</th>
+        <th class="p-3">Status</th>
+      `;
+    }
+  }
+
   const ref = REF_HEIGHTS[activeLocation];
   const thresholds = {
     lokasi1: { waspada: 110, siaga: 130 },
@@ -527,13 +579,27 @@ function updateHistoryTable(rows) {
       second: "2-digit"
     });
 
+    let col2Val = "-";
+    let col3Val = "-";
+    let col4Val = "-";
+
+    if (activeLocation === "lokasi2") {
+      col2Val = r.windavg !== undefined && r.windavg !== null ? r.windavg.toFixed(1) + " m/s" : "-";
+      col3Val = r.windmax !== undefined && r.windmax !== null ? r.windmax.toFixed(1) + " m/s" : "-";
+      col4Val = r.windir !== undefined && r.windir !== null ? r.windir + "°" : "-";
+    } else {
+      col2Val = d1 > 0 ? d1.toFixed(1) + " cm" : "-";
+      col3Val = d2 > 0 ? d2.toFixed(1) + " cm" : "-";
+      col4Val = tinggiAirStr;
+    }
+
     const tr = document.createElement("tr");
     tr.className = "border-b border-primary hover:bg-surface-container-highest transition-colors";
     tr.innerHTML = `
       <td class="p-3 border-r-2 border-primary">${timeStr}</td>
-      <td class="p-3 border-r-2 border-primary">${d1 > 0 ? d1.toFixed(1) + " cm" : "-"}</td>
-      <td class="p-3 border-r-2 border-primary">${d2 > 0 ? d2.toFixed(1) + " cm" : "-"}</td>
-      <td class="p-3 border-r-2 border-primary font-bold">${tinggiAirStr}</td>
+      <td class="p-3 border-r-2 border-primary">${col2Val}</td>
+      <td class="p-3 border-r-2 border-primary">${col3Val}</td>
+      <td class="p-3 border-r-2 border-primary font-bold">${col4Val}</td>
       <td class="p-3"><span class="font-bold font-label-caps text-xs ${statusClass}">${statusStr}</span></td>
     `;
     tbody.appendChild(tr);
