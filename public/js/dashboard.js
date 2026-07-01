@@ -52,7 +52,7 @@ document.getElementById("lokasi3").onclick = () => setLocation("lokasi3");
 // ================= API =================
 function getAPI() {
   const id = locations[activeLocation].lokasi;
-  return `/api/sensor?lokasi=${id}`;
+  return `/api/sensor?lokasi=${id}&_=${Date.now()}`;
 }
 
 // ================= MODE SENSOR =================
@@ -418,7 +418,7 @@ function updateSummary(latest) {
   const tinggiAir = ref - distance;
   const tinggiAirFixed = Math.max(0, tinggiAir).toFixed(1);
   
-  document.getElementById("current-distance").innerHTML = `${tinggiAirFixed} <small>cm</small>`;
+  document.getElementById("current-distance").innerText = tinggiAirFixed;
 
   // Set Card 2 value dynamically
   if (activeLocation === "lokasi2") {

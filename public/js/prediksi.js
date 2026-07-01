@@ -87,7 +87,7 @@ async function muatData() {
 
 async function muatPrediksi() {
   try {
-    const res = await fetch("/api/prediksi?lokasi=" + activeLokasi);
+    const res = await fetch("/api/prediksi?lokasi=" + activeLokasi + "&_=" + Date.now());
     const data = await res.json();
     if (!data.success) {
       document.getElementById("metricStatus").innerText = "OFFLINE";
@@ -636,7 +636,7 @@ async function muatBanding() {
   const container = document.getElementById("bandingChartContainer");
   if (container) container.style.opacity = "0.5";
   try {
-    const res = await fetch("/api/perbandingan?lokasi=" + activeLokasi + "&max=50");
+    const res = await fetch("/api/perbandingan?lokasi=" + activeLokasi + "&max=50&_=" + Date.now());
     const data = await res.json();
     if (container) container.style.opacity = "1.0";
     if (!data.success) {
