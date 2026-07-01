@@ -315,5 +315,5 @@ app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server jalan di http://localhost:${PORT}`);
+  console.log(`Server jalan di http://localhost:${PORT}/dashboard.html`);
 });

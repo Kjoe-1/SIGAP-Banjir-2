@@ -117,16 +117,16 @@ def main():
             h_str = str(h)
             filtered = []
             if a.lokasi == 3:
-                base_date = "2026-06-24"
+                base_date = "2026-07-01"
                 for jam_val, t_pred, t_act in temp_data[h_str]:
                     if h == 6:
-                        if f"{base_date} 12:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                        if f"{base_date} 03:00:00" <= jam_val <= f"{base_date} 09:00:00":
                             filtered.append((jam_val, t_pred, t_act))
                     elif h == 3:
-                        if f"{base_date} 15:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                        if f"{base_date} 06:00:00" <= jam_val <= f"{base_date} 09:00:00":
                             filtered.append((jam_val, t_pred, t_act))
                     elif h == 1:
-                        if f"{base_date} 16:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                        if f"{base_date} 08:00:00" <= jam_val <= f"{base_date} 09:00:00":
                             filtered.append((jam_val, t_pred, t_act))
             else:
                 base_date = "2026-06-15"
@@ -174,16 +174,16 @@ def main():
             h_str = str(h)
             filtered = []
             if a.lokasi == 3:
-                base_date = "2026-06-24"
+                base_date = "2026-07-01"
                 for jam_val, t_pred, t_act in temp_data[h_str]:
                     if h == 6:
-                        if f"{base_date} 12:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                        if f"{base_date} 03:00:00" <= jam_val <= f"{base_date} 09:00:00":
                             filtered.append((jam_val, t_pred, t_act))
                     elif h == 3:
-                        if f"{base_date} 15:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                        if f"{base_date} 06:00:00" <= jam_val <= f"{base_date} 09:00:00":
                             filtered.append((jam_val, t_pred, t_act))
                     elif h == 1:
-                        if f"{base_date} 16:00:00" <= jam_val <= f"{base_date} 17:00:00":
+                        if f"{base_date} 08:00:00" <= jam_val <= f"{base_date} 09:00:00":
                             filtered.append((jam_val, t_pred, t_act))
             else:
                 base_date = "2026-06-15"

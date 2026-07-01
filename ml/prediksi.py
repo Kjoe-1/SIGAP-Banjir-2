@@ -123,8 +123,8 @@ def main():
         if a.mode == "db":
             try:
                 df = _ambil_db(cfg, a.anchor, a.lookback)
-                # Filter out data after June 24, 2026 to keep predictions valid for video recording
-                df = df[df["jam"] <= "2026-06-24 23:59:59"]
+                # Filter out data after July 1, 2026 09:00:00 to anchor predictions
+                df = df[df["jam"] <= "2026-07-01 09:00:00"]
             except Exception as e:
                 # KONEKSI DB gagal (env/jaringan/pymysql) -> jaring pengaman: pakai demo,
                 # ditandai jelas supaya frontend bisa kasih label "data demo".
