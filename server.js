@@ -90,35 +90,98 @@ app.get("/auth/me", (req, res) => {
   res.json({ role: "user" });
 });
 
-app.post("/api/predict", (req, res) => {
-  const payload = JSON.stringify(req.body);
+const ML_API_URL = process.env.ML_API_URL || null;
 
-  execFile("python", ["predict_ml.py", payload], (error, stdout, stderr) => {
-    if (error) {
-      console.error("ML error:", error);
-      console.error("stderr:", stderr);
-      return res.status(500).json({
-        success: false,
-        message: "Gagal menjalankan model ML",
-      });
-    }
-
-    try {
-      const result = JSON.parse(stdout);
-      res.json({
-        success: true,
-        input: req.body,
-        prediction: result,
-      });
-    } catch (parseError) {
-      res.status(500).json({
-        success: false,
-        message: "Output ML tidak valid",
-        raw: stdout,
-      });
-    }
+async function runMLPrediction(payload) {
+  if (ML_API_URL) {
+    const res = await fetch(`${ML_API_URL}/predict`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`ML API HTTP error: ${res.statusText}`);
+    return await res.json();
+  }
+  return new Promise((resolve, reject) => {
+    execFile("python", ["predict_ml.py", JSON.stringify(payload)], (error, stdout, stderr) => {
+      if (error) return reject(new Error(stderr || error.message));
+      try { resolve(JSON.parse(stdout)); }
+      catch (e) { reject(e); }
+    });
   });
+}
+
+async function run1HourForecast(payload) {
+  if (ML_API_URL) {
+    const res = await fetch(`${ML_API_URL}/predict_1hour`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`ML API HTTP error: ${res.statusText}`);
+    return await res.json();
+  }
+  return new Promise((resolve, reject) => {
+    execFile("python", ["predict_1hour.py", JSON.stringify(payload)], (error, stdout, stderr) => {
+      if (error) return reject(new Error(stderr || error.message));
+      try { resolve(JSON.parse(stdout)); }
+      catch (e) { reject(e); }
+    });
+  });
+}
+
+async function runPrediksiScript(mLokasi) {
+  if (ML_API_URL) {
+    const res = await fetch(`${ML_API_URL}/prediksi?lokasi=${mLokasi}&mode=db&anchor=latest&lookback=336`);
+    if (!res.ok) throw new Error(`ML API HTTP error: ${res.statusText}`);
+    return await res.json();
+  }
+  const ML_DIR = path.join(__dirname, "ml");
+  const args = ["prediksi.py", "--lokasi", String(mLokasi), "--mode", "db", "--anchor", "latest", "--lookback", "336"];
+  return new Promise((resolve, reject) => {
+    execFile("python", args, { cwd: ML_DIR, timeout: 60000 }, (err, stdout, stderr) => {
+      if (err) return reject(new Error(stderr || err.message));
+      try { resolve(JSON.parse(stdout)); }
+      catch (e) { reject(e); }
+    });
+  });
+}
+
+async function runBandingScript(mLokasi, maxPoints) {
+  if (ML_API_URL) {
+    const res = await fetch(`${ML_API_URL}/perbandingan?lokasi=${mLokasi}&mode=db&max=${maxPoints}`);
+    if (!res.ok) throw new Error(`ML API HTTP error: ${res.statusText}`);
+    return await res.json();
+  }
+  const ML_DIR = path.join(__dirname, "ml");
+  const args = ["banding.py", "--lokasi", String(mLokasi), "--mode", "db", "--max-points", String(maxPoints)];
+  return new Promise((resolve, reject) => {
+    execFile("python", args, { cwd: ML_DIR, timeout: 60000 }, (err, stdout, stderr) => {
+      if (err) return reject(new Error(stderr || err.message));
+      try { resolve(JSON.parse(stdout)); }
+      catch (e) { reject(e); }
+    });
+  });
+}
+
+app.post("/api/predict", async (req, res) => {
+  try {
+    const result = await runMLPrediction(req.body);
+    res.json({
+      success: true,
+      input: req.body,
+      prediction: result,
+    });
+  } catch (error) {
+    console.error("ML error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal menjalankan model ML",
+      error: error.message,
+    });
+  }
 });
+
 app.get("/api/latest-prediction", async (req, res) => {
   const lokasi = parseInt(req.query.lokasi) || 3;
   let conn;
@@ -139,11 +202,9 @@ app.get("/api/latest-prediction", async (req, res) => {
       ? { distance_cm: latest.distance || 0, rainfall_mm: latest.rain1h || 0, tip_count: 0 }
       : { distance_cm: latest.distance1 || latest.distance2 || 0, rainfall_mm: latest.curah_hujan || latest.curah_hujan_1h || 0, tip_count: latest.jumlah_tip || 0 };
 
-    execFile("python", ["predict_ml.py", JSON.stringify(s)], (error, stdout, stderr) => {
-      if (error) return res.status(500).json({ success: false, message: "Gagal ML", stderr });
-      try { res.json({ success: true, sensor: latest, prediction: JSON.parse(stdout) }); }
-      catch { res.status(500).json({ success: false, message: "Output ML tidak valid", raw: stdout }); }
-    });
+    const prediction = await runMLPrediction(s);
+
+    res.json({ success: true, sensor: latest, prediction });
   } catch (error) {
     console.error("Realtime error:", error);
     res.status(500).json({ success: false, message: error.message });
@@ -168,19 +229,17 @@ app.get("/api/forecast-1hour", async (req, res) => {
     if (!rows.length) return res.json({ success: false, message: "Tidak ada data sensor" });
 
     const latest = rows[0];
-    const payload = JSON.stringify({
+    const payload = {
       distance1: lokasi === 2 ? (latest.distance || 0) : (latest.distance1 || 0),
       distance2: lokasi === 2 ? (latest.distance || 0) : (latest.distance2 || 0),
       curah_hujan: latest.curah_hujan || latest.rain1h || 0,
       curah_hujan_1h: latest.curah_hujan_1h || latest.rain1h || 0,
       jumlah_tip: latest.jumlah_tip || 0,
-    });
+    };
 
-    execFile("python", ["predict_1hour.py", payload], (error, stdout, stderr) => {
-      if (error) return res.status(500).json({ success: false, message: "Gagal forecast", stderr });
-      try { res.json({ success: true, sensor: latest, forecast: JSON.parse(stdout) }); }
-      catch { res.status(500).json({ success: false, message: "Output tidak valid", raw: stdout }); }
-    });
+    const forecast = await run1HourForecast(payload);
+
+    res.json({ success: true, sensor: latest, forecast });
   } catch (error) {
     console.error("Forecast error:", error);
     res.status(500).json({ success: false, message: error.message });
@@ -189,34 +248,37 @@ app.get("/api/forecast-1hour", async (req, res) => {
   }
 });
 
-// Endpoint prediksi multi-horizon (dari ml/prediksi.py)
-const ML_DIR = path.join(__dirname, "ml");
+// Endpoint prediksi multi-horizon
 const FE2ML_MAP = { 1: 1, 2: 2, 3: 3 };
 
-app.get("/api/prediksi", (req, res) => {
+app.get("/api/prediksi", async (req, res) => {
   const feLokasi = parseInt(req.query.lokasi) || 3;
   const mLokasi = FE2ML_MAP[feLokasi] || 1;
-  const args = ["prediksi.py", "--lokasi", String(mLokasi), "--mode", "db", "--anchor", "latest", "--lookback", "336"];
-  execFile("python", args, { cwd: ML_DIR, timeout: 60000 }, (err, stdout, stderr) => {
-    if (err) return res.status(500).json({ success: false, message: "Gagal prediksi", stderr: stderr });
-    try { const d = JSON.parse(stdout); d.fe_lokasi = feLokasi; res.json(d); }
-    catch { res.status(500).json({ success: false, message: "Output tidak valid", stdout }); }
-  });
+  try {
+    const data = await runPrediksiScript(mLokasi);
+    data.fe_lokasi = feLokasi;
+    res.json(data);
+  } catch (error) {
+    console.error("Gagal prediksi:", error);
+    res.status(500).json({ success: false, message: "Gagal prediksi", error: error.message });
+  }
 });
 
 // Endpoint perbandingan prediksi vs aktual historis
 const BANDING_MAP = { 1: 1, 2: 2, 3: 3 };
 
-app.get("/api/perbandingan", (req, res) => {
+app.get("/api/perbandingan", async (req, res) => {
   const feLokasi = parseInt(req.query.lokasi) || 3;
   const mLokasi = BANDING_MAP[feLokasi] || 1;
   const maxPoints = parseInt(req.query.max) || 50;
-  const args = ["banding.py", "--lokasi", String(mLokasi), "--mode", "db", "--max-points", String(maxPoints)];
-  execFile("python", args, { cwd: ML_DIR, timeout: 60000 }, (err, stdout, stderr) => {
-    if (err) return res.status(500).json({ success: false, message: "Gagal perbandingan", stderr: stderr });
-    try { const d = JSON.parse(stdout); d.fe_lokasi = feLokasi; res.json(d); }
-    catch { res.status(500).json({ success: false, message: "Output tidak valid", stdout }); }
-  });
+  try {
+    const data = await runBandingScript(mLokasi, maxPoints);
+    data.fe_lokasi = feLokasi;
+    res.json(data);
+  } catch (error) {
+    console.error("Gagal perbandingan:", error);
+    res.status(500).json({ success: false, message: "Gagal perbandingan", error: error.message });
+  }
 });
 
 // Setup Table Laporan Banjir di database 'dbpvwemonbaru' (Lokasi 3)
